@@ -556,17 +556,21 @@ input[type="file"] {
   height: 100%;
   display: flex;
   flex-direction: column;
-  /* overflow: hidden; */
   flex: 1 1 0;
   min-height: 0;
+  /* overflow: hidden; */
 }
 
 .task-header {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   flex-shrink: 0;
+  gap: 16px;
+  width: 100%;
 }
 
 .task-header h3 {
@@ -576,26 +580,50 @@ input[type="file"] {
 }
 
 .task-controls {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   gap: 12px;
   align-items: center;
+  width: 100%;
 }
 
-.date-selector input {
+.date-selector {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.date-selector input[type="date"] {
   background: rgba(255, 255, 255, 0.95);
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
   color: #333;
+  appearance: none;
+  position: relative;
+  z-index: 1;
 }
 
-.date-selector input:focus {
+.date-selector input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(0.2);
+  /* Makes the calendar icon black */
+}
+
+.date-selector input[type="date"]:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 .history-toggle {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 160px;
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
@@ -683,11 +711,15 @@ input[type="file"] {
 }
 
 .task-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: space-between;
+  align-items: center;
   gap: 16px;
   margin-bottom: 24px;
   flex-shrink: 0;
+  width: 100%;
 }
 
 .stat {
@@ -696,6 +728,10 @@ input[type="file"] {
   border-radius: 12px;
   text-align: center;
   backdrop-filter: blur(10px);
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  margin: 0 4px;
 }
 
 .stat-label {
@@ -712,10 +748,13 @@ input[type="file"] {
 }
 
 .add-task {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   flex-shrink: 0;
+  width: 100%;
 }
 
 .add-task input {
@@ -726,6 +765,7 @@ input[type="file"] {
   border-radius: 8px;
   font-size: 14px;
   color: #333;
+  min-width: 0;
 }
 
 .add-task input:focus {
@@ -748,6 +788,7 @@ input[type="file"] {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .add-task button:hover {
@@ -763,6 +804,7 @@ input[type="file"] {
   gap: 8px;
   overflow-y: auto;
   padding-bottom: 20px;
+  width: 100%;
 }
 
 .task-item {
@@ -875,21 +917,27 @@ input[type="file"] {
     gap: 12px;
   }
   .task-stats {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
+  }
+  .stat {
+    margin: 0 2px;
   }
   .add-task {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
   }
   .task-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
   }
   .task-controls {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
   }
   .files-header {
     flex-direction: column;
@@ -972,5 +1020,19 @@ input[type="file"] {
     max-width: 200px;
     font-size: 11px;
     padding: 8px 12px;
+  }
+  .task-header,
+  .task-controls,
+  .task-stats,
+  .add-task,
+  .date-selector {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100%;
+  }
+  .stat {
+    margin: 0 1px;
+    padding: 8px;
+    font-size: 12px;
   }
 }
