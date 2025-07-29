@@ -6,7 +6,7 @@
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* Loading Styles */
@@ -91,10 +91,12 @@
 
 /* Content Styles */
 .content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  flex: 1 1 0;
   min-height: 0;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 /* Drop Zone Styles */
@@ -109,16 +111,17 @@
   background: rgba(255, 255, 255, 0.1);
   border: 2px dashed rgba(255, 255, 255, 0.3);
   border-radius: 16px;
-  padding: 40px 20px;
+  padding: 40px 20px 70px 20px;
   text-align: center;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
+  min-height: 180px;
 }
 
 .file-drop-area:hover {
@@ -161,7 +164,9 @@
 
 .select-files-btn {
   position: absolute;
-  bottom: 20px;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
   background: white;
   color: #667eea;
   border: none;
@@ -171,11 +176,19 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2;
 }
 
 .select-files-btn:hover {
-  transform: translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+input[type="file"] {
+  display: block !important;
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
 }
 
 /* Input Sections */
@@ -183,6 +196,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  flex-shrink: 0;
 }
 
 .input-section {
@@ -250,9 +264,11 @@
 
 /* Files List Styles */
 .files-list {
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  /* overflow: hidden; */
 }
 
 .files-header {
@@ -316,12 +332,22 @@
 }
 
 .files-grid {
+  flex: 1 1 0;
+  min-height: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   overflow-y: auto;
-  flex: 1;
   padding-bottom: 20px;
+  /* Remove overflow: hidden or stacking context issues */
+  position: relative;
+  z-index: 0;
+}
+
+@media (min-width: 600px) {
+  .files-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
 
 .file-card {
@@ -330,6 +356,7 @@
   padding: 16px;
   backdrop-filter: blur(10px);
   display: flex;
+  flex-direction: row !important;
   align-items: flex-start;
   gap: 12px;
   transition: all 0.3s ease;
@@ -337,12 +364,15 @@
   min-height: 80px;
   position: relative;
   cursor: pointer;
+  z-index: 1;
+  /* Ensure stacking context for children */
 }
 
 .file-card:hover {
   background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  z-index: 10;
 }
 
 .file-card.url-card {
@@ -409,6 +439,9 @@
   align-self: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+  position: relative;
+  z-index: 20;
+  background: none;
 }
 
 .action-btn {
@@ -523,7 +556,9 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow: hidden; */
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .task-header {
@@ -721,13 +756,13 @@
 }
 
 .tasks-list {
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
-  flex: 1;
   padding-bottom: 20px;
-  min-height: 0;
 }
 
 .task-item {
@@ -817,103 +852,82 @@
   .header {
     padding: 12px 16px;
   }
-  
   .header h1 {
     font-size: 20px;
     margin-bottom: 12px;
   }
-  
   .tabs {
     gap: 6px;
   }
-  
   .tab {
     font-size: 12px;
     padding: 8px 12px;
   }
-  
   .content {
     padding: 16px;
   }
-  
   .input-sections {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
   .files-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
   .task-stats {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
   .add-task {
     flex-direction: column;
     gap: 8px;
   }
-  
   .task-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  
   .task-controls {
     flex-direction: column;
     gap: 8px;
   }
-  
   .files-header {
     flex-direction: column;
     gap: 12px;
     align-items: stretch;
   }
-  
   .file-card {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row !important;
+    text-align: left;
     gap: 8px;
     min-height: auto;
   }
-  
   .file-actions {
-    justify-content: center;
+    justify-content: flex-end;
   }
-  
   .drop-zone {
     gap: 16px;
   }
-  
   .file-drop-area {
-    padding: 30px 16px;
+    padding: 30px 16px 70px 16px;
   }
-  
   .drop-icon {
     font-size: 36px;
   }
-  
   .file-drop-area h3 {
     font-size: 18px;
   }
-  
   .file-drop-area p {
     font-size: 13px;
   }
-  
   .history-day {
     flex-direction: column;
     gap: 8px;
     text-align: center;
   }
-  
   .history-stats {
     align-items: center;
   }
-  
   .file-preview {
     max-width: 250px;
     left: 10px;
@@ -925,43 +939,35 @@
   .header {
     padding: 8px 12px;
   }
-  
   .content {
     padding: 12px;
   }
-  
   .tab {
     font-size: 11px;
     padding: 6px 10px;
   }
-  
   .file-drop-area {
-    padding: 20px 12px;
+    padding: 20px 12px 70px 12px;
   }
-  
   .drop-icon {
     font-size: 32px;
   }
-  
   .input-section {
     padding: 16px;
   }
-  
   .file-card {
+    flex-direction: row !important;
     padding: 12px;
   }
-  
   .task-item {
     padding: 10px 12px;
   }
-  
   .notification {
     top: 10px;
     right: 10px;
     left: 10px;
     text-align: center;
   }
-  
   .file-preview {
     max-width: 200px;
     font-size: 11px;
