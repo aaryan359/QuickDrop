@@ -1,7 +1,7 @@
 
 
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 // Chrome API type declarations
@@ -134,6 +134,7 @@ function App() {
   const [urlInput, setUrlInput] = useState('')
   const [showTaskHistory, setShowTaskHistory] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Load data from storage on component mount
   useEffect(() => {
@@ -174,8 +175,20 @@ function App() {
     setIsDragging(false)
     
     const droppedFiles = Array.from(e.dataTransfer.files)
-    
-    droppedFiles.forEach(file => {
+    processFiles(droppedFiles)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || [])
+    processFiles(selectedFiles)
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const processFiles = (fileList: File[]) => {
+    fileList.forEach(file => {
       const reader = new FileReader()
       reader.onload = (e) => {
         const content = e.target?.result as string
@@ -191,6 +204,10 @@ function App() {
       }
       reader.readAsDataURL(file)
     })
+  }
+
+  const handleSelectFiles = () => {
+    fileInputRef.current?.click()
   }
 
   const handleTextSubmit = () => {
@@ -404,7 +421,23 @@ function App() {
               <div className="drop-hint">
                 <span>Supported: Images, PDFs, Text files, URLs</span>
               </div>
+              <button 
+                className="select-files-btn"
+                onClick={handleSelectFiles}
+              >
+                📁 Select Files
+              </button>
             </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              style={{ display: 'none' }}
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.txt,.md,.doc,.docx"
+            />
 
             <div className="input-sections">
               <div className="input-section">
