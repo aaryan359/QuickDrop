@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "QuickDrop",
+  "version": "1.0.0",
+  "description": "A quick and easy browser extension that works on every website",
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "QuickDrop"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
