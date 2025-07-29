@@ -134,6 +134,7 @@ function App() {
   const [urlInput, setUrlInput] = useState('')
   const [showTaskHistory, setShowTaskHistory] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [hoveredFile, setHoveredFile] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Load data from storage on component mount
@@ -369,6 +370,47 @@ function App() {
     return `file-card ${file.type}-card`
   }
 
+  const renderFilePreview = (file: FileItem) => {
+    if (hoveredFile !== file.id) return null
+
+    return (
+      <div className="file-preview show">
+        <div className="file-preview-title">{file.name}</div>
+        <div className="file-preview-content">
+          {file.type === 'image' && (
+            <img 
+              src={file.content} 
+              alt={file.name}
+              className="file-preview-image"
+            />
+          )}
+          {file.type === 'text' && (
+            <div className="file-preview-text">
+              {file.content.length > 200 
+                ? file.content.substring(0, 200) + '...' 
+                : file.content}
+            </div>
+          )}
+          {file.type === 'url' && (
+            <div className="file-preview-url">
+              {file.url}
+            </div>
+          )}
+          {file.type === 'pdf' && (
+            <div className="file-preview-text">
+              📄 PDF Document - {file.size}
+            </div>
+          )}
+          {file.type === 'other' && (
+            <div className="file-preview-text">
+              📁 File - {file.size}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="app">
@@ -503,7 +545,13 @@ function App() {
             ) : (
               <div className="files-grid">
                 {files.map(file => (
-                  <div key={file.id} className={getFileCardClassName(file)}>
+                  <div 
+                    key={file.id} 
+                    className={getFileCardClassName(file)}
+                    onMouseEnter={() => setHoveredFile(file.id)}
+                    onMouseLeave={() => setHoveredFile(null)}
+                  >
+                    {renderFilePreview(file)}
                     <div className="file-icon">
                       {file.type === 'image' && '🖼️'}
                       {file.type === 'pdf' && '📄'}

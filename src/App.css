@@ -336,6 +336,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   min-height: 80px;
   position: relative;
+  cursor: pointer;
 }
 
 .file-card:hover {
@@ -444,6 +445,76 @@
 
 .delete-btn:hover {
   background: rgba(255, 59, 48, 0.3);
+}
+
+/* File Preview Tooltip */
+.file-preview {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: hidden;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.file-preview.show {
+  opacity: 1;
+  visibility: visible;
+  top: -15px;
+}
+
+.file-preview::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.file-preview-image {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.file-preview-text {
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.file-preview-url {
+  color: #4fc3f7;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.file-preview-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+.file-preview-content {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Tasks Section Styles */
@@ -842,6 +913,12 @@
   .history-stats {
     align-items: center;
   }
+  
+  .file-preview {
+    max-width: 250px;
+    left: 10px;
+    transform: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -883,5 +960,11 @@
     right: 10px;
     left: 10px;
     text-align: center;
+  }
+  
+  .file-preview {
+    max-width: 200px;
+    font-size: 11px;
+    padding: 8px 12px;
   }
 }
