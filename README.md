@@ -45,3 +45,11 @@ npm run build
 - Vite for fast development and building
 - Browser extension popup interface
 - Responsive design optimized for extension popup
+
+
+## Images
+<img width="507" height="608" alt="Screenshot from 2025-08-23 01-44-12" src="https://github.com/user-attachments/assets/8fa97361-f7b6-49da-a99b-635d76e65f32" />
+<img width="507" height="608" alt="Screenshot from 2025-08-23 01-43-51" src="https://github.com/user-attachments/assets/dfe32217-5ad1-4492-9c7b-f13f405ce910" />
+<img width="507" height="608" alt="Screenshot from 2025-08-23 01-43-43" src="https://github.com/user-attachments/assets/6180b93b-9086-482f-a5d4-80545a0ea719" />
+<img width="507" height="608" alt="image" src="https://github.com/user-attachments/assets/dcc3650c-a614-4db8-ba97-f7f1ecd3b6c6" />
+
