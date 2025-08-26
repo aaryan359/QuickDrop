@@ -8,13 +8,14 @@ import './App.css'
 declare const chrome: any
 
 interface FileItem {
-  id: string
-  name: string
-  type: 'text' | 'image' | 'pdf' | 'url' | 'other'
-  content: string
-  url?: string
-  size?: string
-  date: Date
+  id: string;
+  name: string;
+  type: 'file' | 'image' | 'pdf' | 'text' | 'url';
+  size?: string;
+  content?: string;
+  url?: string;
+  description?: string;
+  timestamp: number;
 }
 
 interface Task {
@@ -132,6 +133,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [textNote, setTextNote] = useState('')
   const [urlInput, setUrlInput] = useState('')
+  const [urlDescription, setUrlDescription] = useState('') // Added state for URL description
   const [showTaskHistory, setShowTaskHistory] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [hoveredFile, setHoveredFile] = useState<string | null>(null)
@@ -190,7 +192,7 @@ function App() {
           type: getFileType(file.name),
           content,
           size: formatFileSize(file.size),
-          date: new Date()
+          timestamp: Date.now()
         }
         setFiles(prev => [...prev, fileItem])
       }
@@ -205,7 +207,7 @@ function App() {
         name: `Text Note ${new Date().toLocaleString()}`,
         type: 'text',
         content: textNote,
-        date: new Date()
+        timestamp: Date.now()
       }
       setFiles(prev => [...prev, textItem])
       setTextNote('')
@@ -213,28 +215,29 @@ function App() {
     }
   }
 
-  const handleUrlSubmit = () => {
-    if (urlInput.trim()) {
-      const urlItem: FileItem = {
-        id: Date.now().toString() + Math.random(),
-        name: `URL ${new Date().toLocaleString()}`,
+  const handleUrlSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (urlInput.trim() && urlDescription.trim()) {
+      const newUrl: FileItem = {
+        id: Date.now().toString(),
+        name: urlInput.trim(),
         type: 'url',
-        content: urlInput,
-        url: urlInput,
-        date: new Date()
-      }
-      setFiles(prev => [...prev, urlItem])
-      setUrlInput('')
-      showNotification('URL added!')
+        url: urlInput.trim(),
+        description: urlDescription.trim(),
+        timestamp: Date.now()
+      };
+      setFiles(prev => [newUrl, ...prev]);
+      setUrlInput('');
+      setUrlDescription('');
+      showNotification('URL added successfully!');
     }
-  }
+  };
 
   const getFileType = (fileName: string): FileItem['type'] => {
-    const ext = fileName.split('.').pop()?.toLowerCase()
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) return 'image'
-    if (ext === 'pdf') return 'pdf'
-    if (ext === 'txt' || ext === 'md') return 'text'
-    return 'other'
+    const extension = fileName.split('.').pop()?.toLowerCase()
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image'
+    if (extension === 'pdf') return 'pdf'
+    return 'file'
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -257,7 +260,7 @@ function App() {
 
   const downloadFile = (file: FileItem) => {
     const link = document.createElement('a')
-    link.href = file.content
+    link.href = file.content || '' // Use file.content if available, otherwise empty string
     link.download = file.name
     document.body.appendChild(link)
     link.click()
@@ -353,10 +356,6 @@ function App() {
     }
   }
 
-  const getFileCardClassName = (file: FileItem) => {
-    return `file-card ${file.type}-card`
-  }
-
   const renderFilePreview = (file: FileItem) => {
     if (hoveredFile !== file.id) return null
 
@@ -373,7 +372,7 @@ function App() {
           )}
           {file.type === 'text' && (
             <div className="file-preview-text">
-              {file.content.length > 200 
+              {file.content && file.content.length > 200 
                 ? file.content.substring(0, 200) + '...' 
                 : file.content}
             </div>
@@ -388,9 +387,29 @@ function App() {
               📄 PDF Document - {file.size}
             </div>
           )}
-          {file.type === 'other' && (
-            <div className="file-preview-text">
-              📁 File - {file.size}
+          {file.type === 'file' && (
+            <div className="file-preview-file">
+              <div className="file-info">
+                <h4>{file.name}</h4>
+                <p className="file-date">{new Date(file.timestamp).toLocaleString()}</p>
+                {file.size && <p className="file-size">{file.size}</p>}
+              </div>
+              <div className="file-actions">
+                <button 
+                  onClick={() => copyToClipboard(file.content || '')}
+                  title="Copy to clipboard"
+                  className="action-btn copy-btn"
+                >
+                  📋
+                </button>
+                <button 
+                  onClick={() => downloadFile(file)}
+                  title="Download file"
+                  className="action-btn download-btn"
+                >
+                  ⬇️
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -471,21 +490,25 @@ function App() {
               </div>
 
               <div className="input-section">
-                <h4>🔗 Add URL</h4>
-                <input 
-                  type="url" 
-                  placeholder="Enter URL..."
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleUrlSubmit()
-                    }
-                  }}
-                />
-                <button onClick={handleUrlSubmit}>
-                  Add URL
-                </button>
+                <h3>Add URL</h3>
+                <form onSubmit={handleUrlSubmit} className="url-form">
+                <input
+                    type="text"
+                    placeholder="Title"
+                    value={urlDescription}
+                    onChange={(e) => setUrlDescription(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="url"
+                    placeholder="Enter URL..."
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    required
+                  />
+                  
+                  <button type="submit">Add URL</button>
+                </form>
               </div>
             </div>
           </div>
@@ -515,29 +538,28 @@ function App() {
               </div>
             ) : (
               <div className="files-grid">
-                {files.map(file => (
-                  <div 
-                    key={file.id} 
-                    className={getFileCardClassName(file)}
-                    onMouseEnter={() => setHoveredFile(file.id)}
-                    onMouseLeave={() => setHoveredFile(null)}
-                  >
+                {files.map((file) => (
+          <div key={file.id} className="file-card" 
+               onMouseEnter={file.type === 'image' ? () => setHoveredFile(file.id) : undefined}
+               onMouseLeave={file.type === 'image' ? () => setHoveredFile(null) : undefined}>
                     {renderFilePreview(file)}
-                    <div className="file-icon">
-                      {file.type === 'image' && '🖼️'}
-                      {file.type === 'pdf' && '📄'}
-                      {file.type === 'text' && '📝'}
-                      {file.type === 'url' && '🔗'}
-                      {file.type === 'other' && '📁'}
-                    </div>
+
                     <div className="file-info">
-                      <h4>{file.name}</h4>
-                      <p className="file-date">{file.date.toLocaleString()}</p>
-                      {file.size && <p className="file-size">{file.size}</p>}
+                      <div className="file-name">
+                        {file.type === 'url' ? (
+                          <div className="url-display">
+                            <div className="url-title">{file.description}</div>
+                            <div className="url-link">{file.name}</div>
+                          </div>
+                        ) : (
+                          file.name
+                        )}
+                      </div>
+                      <div className="file-size">{file.size}</div>
                     </div>
                     <div className="file-actions">
                       <button 
-                        onClick={() => copyToClipboard(file.content)}
+                        onClick={() => copyToClipboard(file.content || '')}
                         title="Copy to clipboard"
                         className="action-btn copy-btn"
                       >
