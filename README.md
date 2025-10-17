@@ -1,4 +1,4 @@
-# QuickDrop Browser Extension
+<!-- # QuickDrop Browser Extension
 
 A React-based browser extension built with Vite and TypeScript.
 
@@ -44,4 +44,4 @@ npm run build
 - Modern React with TypeScript
 - Vite for fast development and building
 - Browser extension popup interface
-- Responsive design optimized for extension popup
+- Responsive design optimized for extension popup -->
