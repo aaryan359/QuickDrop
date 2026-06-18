@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import type { FileItem, Task, NoteItem } from './types';
-import { saveData, loadData } from './services/storage';
+import { DataService } from './services/dataService';
 import { 
-  getFileType, 
-  formatFileSize, 
   isValidUrl, 
   getTodayDateFormatted, 
   showNotification, 
@@ -47,7 +45,7 @@ function App() {
   useEffect(() => {
     const loadDataOnMount = async () => {
       try {
-        const { files: loadedFiles, tasks: loadedTasks, notes: loadedNotes } = await loadData();
+        const { files: loadedFiles, tasks: loadedTasks, notes: loadedNotes } = await DataService.loadAllData();
         setFiles(loadedFiles);
         setTasks(loadedTasks);
         setNotes(loadedNotes);
@@ -77,7 +75,7 @@ function App() {
   // Save data to storage whenever files, tasks, or notes change
   useEffect(() => {
     if (!isLoading) {
-      saveData(files, tasks, notes);
+      DataService.syncData(files, tasks, notes);
     }
   }, [files, tasks, notes, isLoading]);
 
@@ -140,7 +138,7 @@ function App() {
     }
   };
 
-  const handleSaveNote = () => {
+  const handleSaveNote = async () => {
     const cleanContent = editorContent.trim();
     const isContentEmpty = !cleanContent || cleanContent === '<br>' || cleanContent === '<div><br></div>' || cleanContent === '<ul><li>&nbsp;</li></ul>' || cleanContent === '<ul><li><br></li></ul>';
     
@@ -151,18 +149,15 @@ function App() {
 
     const titleToSave = editorTitle.trim() || 'Untitled Note';
 
-    // Always create a new note in history to prevent overwriting previous content
-    const newId = Date.now().toString() + Math.random();
-    const newNote: NoteItem = {
-      id: newId,
-      title: titleToSave,
-      content: editorContent,
-      timestamp: Date.now()
-    };
-    
-    setNotes(prev => [newNote, ...prev]);
-    setActiveNoteId(newId);
-    showNotification('Note saved successfully!');
+    try {
+      const newNote = await DataService.addNoteItem(titleToSave, editorContent);
+      setNotes(prev => [newNote, ...prev]);
+      setActiveNoteId(newNote.id);
+      showNotification('Note saved successfully!');
+    } catch (err) {
+      showNotification('Failed to save note!');
+      console.error(err);
+    }
   };
 
   const handleClearNote = () => {
@@ -185,17 +180,23 @@ function App() {
     showNotification('Started a new note!');
   };
 
-  const deleteNote = (noteId: string) => {
-    setNotes(prev => prev.filter(note => note.id !== noteId));
-    if (activeNoteId === noteId) {
-      setActiveNoteId(null);
-      setEditorTitle('');
-      setEditorContent('');
-      if (editorRef.current) {
-        editorRef.current.innerHTML = '';
+  const deleteNote = async (noteId: string) => {
+    try {
+      await DataService.deleteNote(noteId);
+      setNotes(prev => prev.filter(note => note.id !== noteId));
+      if (activeNoteId === noteId) {
+        setActiveNoteId(null);
+        setEditorTitle('');
+        setEditorContent('');
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
       }
+      showNotification('Note deleted!');
+    } catch (err) {
+      showNotification('Failed to delete note!');
+      console.error(err);
     }
-    showNotification('Note deleted!');
   };
 
   const selectNote = (note: NoteItem) => {
@@ -228,69 +229,85 @@ function App() {
   const processFiles = (fileList: File[]) => {
     fileList.forEach(file => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const content = e.target?.result as string;
-        const fileItem: FileItem = {
-          id: Date.now().toString() + Math.random(),
-          name: file.name,
-          type: getFileType(file.name),
-          content,
-          size: formatFileSize(file.size),
-          timestamp: Date.now()
-        };
-        setFiles(prev => [fileItem, ...prev]);
-        showNotification('File added successfully!');
+        try {
+          const fileItem = await DataService.addFile(file, content);
+          setFiles(prev => [fileItem, ...prev]);
+          showNotification('File added successfully!');
+        } catch (err) {
+          showNotification('Failed to add file!');
+          console.error(err);
+        }
       };
       reader.readAsDataURL(file);
     });
   };
 
-  const handleUrlSubmit = (e: React.FormEvent) => {
+  const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (urlInput.trim()) {
-      const newUrl: FileItem = {
-        id: Date.now().toString() + Math.random(),
-        name: urlInput.trim(),
-        type: 'url',
-        url: urlInput.trim(),
-        description: urlDescription.trim() || 'Text Snippet',
-        timestamp: Date.now()
-      };
-      setFiles(prev => [newUrl, ...prev]);
-      setUrlInput('');
-      setUrlDescription('');
-      showNotification('Snippet saved!');
+      try {
+        const newUrl = await DataService.addUrlItem(urlInput, urlDescription);
+        setFiles(prev => [newUrl, ...prev]);
+        setUrlInput('');
+        setUrlDescription('');
+        showNotification('Snippet saved!');
+      } catch (err) {
+        showNotification('Failed to save snippet!');
+        console.error(err);
+      }
     }
   };
 
-  const deleteFile = (fileId: string) => {
-    setFiles(prev => prev.filter(file => file.id !== fileId));
-    showNotification('Item deleted!');
+  const deleteFile = async (fileId: string) => {
+    try {
+      await DataService.deleteFile(fileId);
+      setFiles(prev => prev.filter(file => file.id !== fileId));
+      showNotification('Item deleted!');
+    } catch (err) {
+      showNotification('Failed to delete item!');
+      console.error(err);
+    }
   };
 
-  const addTask = () => {
+  const addTask = async () => {
     if (newTask.trim()) {
-      const task: Task = {
-        id: Date.now().toString() + Math.random(),
-        title: newTask.trim(),
-        completed: false,
-        date: new Date()
-      };
-      setTasks(prev => [task, ...prev]);
-      setNewTask('');
-      showNotification('Task added!');
+      try {
+        const task = await DataService.addTaskItem(newTask);
+        setTasks(prev => [task, ...prev]);
+        setNewTask('');
+        showNotification('Task added!');
+      } catch (err) {
+        showNotification('Failed to add task!');
+        console.error(err);
+      }
     }
   };
 
-  const toggleTask = (taskId: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
+  const toggleTask = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    try {
+      await DataService.toggleTask(taskId, !task.completed);
+      setTasks(prev => prev.map(t => 
+        t.id === taskId ? { ...t, completed: !t.completed } : t
+      ));
+    } catch (err) {
+      showNotification('Failed to update task!');
+      console.error(err);
+    }
   };
 
-  const deleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-    showNotification('Task deleted!');
+  const deleteTask = async (taskId: string) => {
+    try {
+      await DataService.deleteTask(taskId);
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      showNotification('Task deleted!');
+    } catch (err) {
+      showNotification('Failed to delete task!');
+      console.error(err);
+    }
   };
 
   const getTasksByDate = (date: string) => {
