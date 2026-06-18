@@ -50,17 +50,53 @@ export const FeedTab: React.FC<FeedTabProps> = ({
         <h3>Feed & History</h3>
         {(files.length > 0 || notes.length > 0 || tasks.length > 0) && (
           <button className="clear-all-btn" onClick={clearAll}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '5px' }}>
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
             Clear All
           </button>
         )}
       </div>
 
       <div className="feed-filters">
-        <button className={`filter-pill ${fileListFilter === 'all' ? 'active' : ''}`} onClick={() => setFileListFilter('all')}>All</button>
-        <button className={`filter-pill ${fileListFilter === 'files' ? 'active' : ''}`} onClick={() => setFileListFilter('files')}>Files</button>
-        <button className={`filter-pill ${fileListFilter === 'links' ? 'active' : ''}`} onClick={() => setFileListFilter('links')}>Snippets</button>
-        <button className={`filter-pill ${fileListFilter === 'notes' ? 'active' : ''}`} onClick={() => setFileListFilter('notes')}>Notes</button>
-        <button className={`filter-pill ${fileListFilter === 'tasks' ? 'active' : ''}`} onClick={() => setFileListFilter('tasks')}>Tasks</button>
+        <button className={`filter-pill ${fileListFilter === 'all' ? 'active' : ''}`} onClick={() => setFileListFilter('all')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          All
+        </button>
+        <button className={`filter-pill ${fileListFilter === 'files' ? 'active' : ''}`} onClick={() => setFileListFilter('files')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          Files
+        </button>
+        <button className={`filter-pill ${fileListFilter === 'links' ? 'active' : ''}`} onClick={() => setFileListFilter('links')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          Snippets
+        </button>
+        <button className={`filter-pill ${fileListFilter === 'notes' ? 'active' : ''}`} onClick={() => setFileListFilter('notes')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
+            <path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"></path>
+            <polyline points="14 3 14 8 19 8"></polyline>
+          </svg>
+          Notes
+        </button>
+        <button className={`filter-pill ${fileListFilter === 'tasks' ? 'active' : ''}`} onClick={() => setFileListFilter('tasks')}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          Tasks
+        </button>
       </div>
 
       {unifiedItems.length === 0 ? (
