@@ -63,6 +63,19 @@ function App() {
     loadDataOnMount();
   }, []);
 
+  // Trigger file selection if opened via triggerUpload query param (handles the popup file dialog workaround)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('triggerUpload') === 'true') {
+      setTimeout(() => {
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.click();
+        }
+      }, 600);
+    }
+  }, []);
+
   // Save data to storage whenever files, tasks, or notes change
   useEffect(() => {
     if (!isLoading) {

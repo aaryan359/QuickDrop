@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
 
+declare const chrome: any;
+
 interface DropTabProps {
   isDragging: boolean;
   handleFileDrop: (e: React.DragEvent) => void;
@@ -28,7 +30,12 @@ export const DropTab: React.FC<DropTabProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAreaClick = () => {
-    if (fileInputRef.current) {
+    // If running inside the Chrome Extension popup, click events open a full tab to trigger the file picker.
+    // Otherwise, the OS dialog would force focus loss and dismiss the popup immediately.
+    const isPopup = window.innerWidth <= 450;
+    if (isPopup && typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.create({ url: 'index.html?triggerUpload=true' });
+    } else if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
