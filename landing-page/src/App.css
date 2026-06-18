@@ -1463,98 +1463,219 @@
   line-height: 1.5;
 }
 
-/* Remembers Callout Banner */
+/* ─── Remembers Banner — Premium Redesign ─────────────────────────────────── */
 .remembers-banner {
   margin-top: 56px;
-  padding: 48px 32px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.03) 100%);
+  border-radius: 20px;
+  background: #0f0a1e;
   border: 1px solid rgba(139, 92, 246, 0.2);
-  text-align: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  z-index: 1;
+  isolation: isolate;
 }
 
 :root[data-theme='dark'] .remembers-banner {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%);
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+  background: #08050f;
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
-.remembers-banner::before {
-  content: '';
+/* Glowing background orbs */
+.remembers-orb {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+  border-radius: 50%;
+  filter: blur(60px);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
+.remembers-orb-left {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.35) 0%, transparent 70%);
+  top: -80px;
+  left: -80px;
+}
+
+.remembers-orb-right {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%);
+  bottom: -60px;
+  right: -60px;
+}
+
+.remembers-inner {
+  position: relative;
+  z-index: 1;
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .remembers-inner {
+    padding: 40px 24px;
+  }
+}
+
+/* Eyebrow pill */
+.remembers-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  color: #c4b5fd;
+  letter-spacing: 0.5px;
+}
+
+.remembers-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+  animation: pulse-dot 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* Text */
 .remembers-text-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.remembers-subtitle {
-  font-size: 14px;
-  color: var(--text);
-  font-weight: 500;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  opacity: 0.8;
+.remembers-line-1 {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: 0;
 }
 
 .remembers-title {
-  font-size: 32px;
+  font-size: 48px;
   font-weight: 800;
-  line-height: 1.25;
+  letter-spacing: -2px;
+  line-height: 1.15;
   margin: 0;
-  letter-spacing: -1.5px;
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
   .remembers-title {
-    font-size: 24px;
-    letter-spacing: -1px;
+    font-size: 32px;
+    letter-spacing: -1.2px;
+  }
+
+  .remembers-line-1 {
+    font-size: 15px;
   }
 }
 
+.remembers-accent {
+  background: linear-gradient(90deg, #a78bfa, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Stat row */
+.remembers-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 32px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 600px) {
+  .remembers-meta {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  .remembers-divider-v {
+    display: none;
+  }
+}
+
+.remembers-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.remembers-stat strong {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.remembers-stat span {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.remembers-divider-v {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+/* CTA button */
 .remembers-cta-btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 32px;
-  background: var(--accent);
-  color: white !important;
+  padding: 15px 36px;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: #ffffff !important;
   font-size: 15px;
   font-weight: 600;
-  border-radius: 30px;
+  border-radius: 50px;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
+  letter-spacing: 0.2px;
 }
 
 .remembers-cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
-  opacity: 0.95;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
 }
 
 .remembers-cta-btn svg {
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
 .remembers-cta-btn:hover svg {
-  transform: translateY(1px);
+  transform: translateY(2px);
 }
