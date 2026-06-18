@@ -290,6 +290,9 @@ body {
   padding: 16px;
   border: 1px solid rgba(16, 185, 129, 0.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  position: sticky;
+  top: -16px;
+  z-index: 100;
 }
 
 .notes-editor-header {
