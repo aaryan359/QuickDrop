@@ -17,6 +17,16 @@ QuickDrop is a premium, high-utility browser extension designed to sit quietly i
 
 ---
 
+## Screenshots
+
+| File & Link Drop | Persistent Notes |
+|:---:|:---:|
+| ![Drop Zone](img4.png) | ![Notes Scratchpad](img1.png) |
+| **⚡ Feed & History** | ** Today's Tasks** |
+| ![Activity Feed](img2.png) | ![Tasks Checklist](img3.png) |
+
+---
+
 ## Repository Structure
 
 The repository is organized into two primary applications:

@@ -4,6 +4,7 @@ import './App.css'
 function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'tasks'>('drop')
+  const [activeGalleryTab, setActiveGalleryTab] = useState<'drop' | 'notes' | 'feed' | 'tasks'>('drop')
   const [liveInputText, setLiveInputText] = useState('')
   const [tasks, setTasks] = useState([
     { id: 1, text: 'Take quick notes during the Zoom meeting', done: true },
@@ -267,6 +268,98 @@ function App() {
       </section>
       {/* Ticks Divider */}
       <div className="ticks"></div>
+
+      {/* Product Interface Showcase Gallery */}
+      <section className="showcase-section" id="showcase">
+        <div className="showcase-container">
+          <div className="showcase-header">
+            <h2 className="title-gradient" style={{ fontSize: '28px', margin: '0 0 8px 0', textAlign: 'center' }}>
+              Explore the QuickDrop Interface
+            </h2>
+            <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+              Take a closer look at the actual Chrome extension sidebar tabs, designed to streamline your development and scratchpad workflows.
+            </p>
+          </div>
+
+          <div className="showcase-layout">
+            {/* Gallery Selector Tabs */}
+            <div className="showcase-tabs">
+              <button
+                className={`showcase-tab-btn ${activeGalleryTab === 'drop' ? 'active' : ''}`}
+                onClick={() => setActiveGalleryTab('drop')}
+              >
+
+                <div className="tab-meta">
+                  <h4>File & Link Drop</h4>
+                  <p>Drag files or paste link snippets instantly</p>
+                </div>
+              </button>
+              <button
+                className={`showcase-tab-btn ${activeGalleryTab === 'notes' ? 'active' : ''}`}
+                onClick={() => setActiveGalleryTab('notes')}
+              >
+
+                <div className="tab-meta">
+                  <h4>Persistent Notes</h4>
+                  <p>Rich scratchpad with history auto-saving</p>
+                </div>
+              </button>
+              <button
+                className={`showcase-tab-btn ${activeGalleryTab === 'feed' ? 'active' : ''}`}
+                onClick={() => setActiveGalleryTab('feed')}
+              >
+                <div className="tab-meta">
+                  <h4>Feed & History</h4>
+                  <p>Filter, copy, and manage stored items</p>
+                </div>
+              </button>
+              <button
+                className={`showcase-tab-btn ${activeGalleryTab === 'tasks' ? 'active' : ''}`}
+                onClick={() => setActiveGalleryTab('tasks')}
+              >
+
+                <div className="tab-meta">
+                  <h4>Today's Checklist</h4>
+                  <p>Lightweight list with progress metrics</p>
+                </div>
+              </button>
+            </div>
+
+            {/* Gallery Image Display */}
+            <div className="showcase-display">
+              <div className="showcase-frame">
+                <div className="showcase-frame-header">
+                  <div className="dots">
+                    <span className="dot-red"></span>
+                    <span className="dot-yellow"></span>
+                    <span className="dot-green"></span>
+                  </div>
+                  <span className="frame-title">
+                    {activeGalleryTab === 'drop' && 'QuickDrop Sidebar — Drop Zone'}
+                    {activeGalleryTab === 'notes' && 'QuickDrop Sidebar — Notes Scratchpad'}
+                    {activeGalleryTab === 'feed' && 'QuickDrop Sidebar — Feed & History'}
+                    {activeGalleryTab === 'tasks' && 'QuickDrop Sidebar — Task Checklist'}
+                  </span>
+                </div>
+                <div className="showcase-frame-body">
+                  {activeGalleryTab === 'drop' && (
+                    <img src="/QuickDrop/img4.png" alt="File & Link Drop Interface" className="showcase-img" />
+                  )}
+                  {activeGalleryTab === 'notes' && (
+                    <img src="/QuickDrop/img1.png" alt="Persistent Notes Interface" className="showcase-img" />
+                  )}
+                  {activeGalleryTab === 'feed' && (
+                    <img src="/QuickDrop/img2.png" alt="Activity Feed Interface" className="showcase-img" />
+                  )}
+                  {activeGalleryTab === 'tasks' && (
+                    <img src="/QuickDrop/img3.png" alt="Today's Tasks Interface" className="showcase-img" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Core Features */}
       <section className="features-section" id="features">
