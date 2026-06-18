@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "description": "A quick and easy browser extension that works on every website",
   "action": {
-    "default_popup": "index.html",
     "default_title": "QuickDrop"
+  },
+  "side_panel": {
+    "default_path": "index.html"
   },
   "background": {
     "service_worker": "background.js"
@@ -19,7 +21,8 @@
   ],
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>"

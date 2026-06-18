@@ -5,6 +5,13 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('QuickDrop extension installed')
 })
 
+// Enable opening the side panel when the user clicks the extension's toolbar icon
+if (typeof chrome !== 'undefined' && chrome.sidePanel) {
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error: any) => console.error('Error setting side panel behavior:', error));
+}
+
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request: any, _sender: any, sendResponse: any) => {
   if (request.type === 'SAVE_DATA') {

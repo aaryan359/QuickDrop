@@ -13,25 +13,25 @@ export const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, feedCount }
         className={`tab ${activeTab === 'drop' ? 'active' : ''}`}
         onClick={() => setActiveTab('drop')}
       >
-        📁 Drop
+        Drop
       </button>
       <button 
         className={`tab ${activeTab === 'notes' ? 'active' : ''}`}
         onClick={() => setActiveTab('notes')}
       >
-        📝 Notes
+        Notes
       </button>
       <button 
         className={`tab ${activeTab === 'files' ? 'active' : ''}`}
         onClick={() => setActiveTab('files')}
       >
-        📋 Feed ({feedCount})
+        Feed ({feedCount})
       </button>
       <button 
         className={`tab ${activeTab === 'tasks' ? 'active' : ''}`}
         onClick={() => setActiveTab('tasks')}
       >
-        ✅ Tasks
+        Tasks
       </button>
     </div>
   );

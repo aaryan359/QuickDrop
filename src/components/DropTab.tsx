@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 interface DropTabProps {
   isDragging: boolean;
@@ -10,6 +10,7 @@ interface DropTabProps {
   setUrlInput: (val: string) => void;
   urlDescription: string;
   setUrlDescription: (val: string) => void;
+  onManualUpload: (files: File[]) => void;
 }
 
 export const DropTab: React.FC<DropTabProps> = ({
@@ -21,27 +22,49 @@ export const DropTab: React.FC<DropTabProps> = ({
   urlInput,
   setUrlInput,
   urlDescription,
-  setUrlDescription
+  setUrlDescription,
+  onManualUpload
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAreaClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      onManualUpload(Array.from(e.target.files));
+    }
+  };
+
   return (
     <div className="drop-zone">
-      <div 
+      <div
         className={`file-drop-area ${isDragging ? 'dragging' : ''}`}
         onDrop={handleFileDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        onClick={handleAreaClick}
       >
-        <div className="drop-icon">📁</div>
-        <h3>Drag & Drop Files Here</h3>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+          style={{ display: 'none' }}
+          multiple
+        />
+        <h3>Drag & Drop or Click to Upload</h3>
         <p>Supports images, PDFs, documents and text files</p>
         <div className="drop-hint">
-          <span>Drag & Drop Only</span>
+          <span>Click or Drag & Drop</span>
         </div>
       </div>
 
       <div className="input-sections">
         <div className="input-section">
-          <h3>🔗 Add Link / Snippet</h3>
+          <h3> Add Link / Snippet</h3>
           <form onSubmit={handleUrlSubmit} className="url-form">
             <input
               type="text"

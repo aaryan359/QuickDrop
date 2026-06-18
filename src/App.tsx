@@ -357,7 +357,7 @@ function App() {
           )}
           {file.type === 'pdf' && (
             <div className="file-preview-text">
-              📄 PDF Document - {file.size}
+              PDF Document - {file.size}
             </div>
           )}
           {file.type === 'file' && (
@@ -408,6 +408,7 @@ function App() {
             setUrlInput={setUrlInput}
             urlDescription={urlDescription}
             setUrlDescription={setUrlDescription}
+            onManualUpload={processFiles}
           />
         )}
 
