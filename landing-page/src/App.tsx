@@ -466,19 +466,21 @@ function App() {
           <div className="footer-dev-info">
             <h3>About the Creator</h3>
             <p>
-              QuickDrop was designed and built by <strong>Aaryan</strong>. I'm a developer passionate about building lightweight utility projects that improve day-to-day coding productivity, eliminate desktop window-switching fatigue, and keep data entirely local.
+              QuickDrop was designed and built by <strong>Aaryan</strong>. I love building lightweight, zero-friction tools that solve real developer workflows, eliminate window-switching fatigue, and keep user data fully private and local.
+            </p>
+            <p className="dev-contact-links" style={{ marginTop: '12px', fontSize: '13px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              <a href="https://aaryan359.github.io/portfolio/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                Portfolio Website
+              </a>
+              <a href="mailto:aaryanmeena96@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                aaryanmeena96@gmail.com
+              </a>
             </p>
           </div>
           <div className="footer-links">
-            <a
-              href="https://buymeacoffee.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="coffee-btn"
-            >
-              ☕ Buy Me a Coffee
-            </a>
-            <p className="copyright">© 2026 QuickDrop. MIT License. Built with Vite & React.</p>
+            <p className="copyright">© 2026 QuickDrop. Built with Vite & React.</p>
           </div>
         </div>
       </footer>
