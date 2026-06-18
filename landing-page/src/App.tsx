@@ -64,11 +64,26 @@ function App() {
       <section className="hero-split-section">
         {/* Left Column: Copy & CTA */}
         <div className="hero-copy-column">
-          <div className="badge-promo">⚡ Zero-Friction Scratchpad</div>
-          <h1 className="title-gradient">QuickDrop</h1>
-          <p className="subtitle-description">
-            Capture thoughts, drop files, save clipboard links, and check off today's tasks in a lightweight browser sidebar. Zero tab-switching, zero clutter.
+          <div className="badge-promo">⚡ Your Browser's Temporary Memory</div>
+          <h1 className="hero-h1">Stop Sending Links<br />to Yourself.</h1>
+          <p className="subtitle-description" style={{ fontSize: '15px', margin: '0 0 16px 0', lineHeight: '1.5' }}>
+            Save links, notes, files, screenshots, and tasks in one place — then come back when you're ready.
           </p>
+
+          <div className="hero-bullets-box" style={{ margin: '0 0 20px 0', padding: '16px', borderRadius: '8px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
+            <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-h)', display: 'block', marginBottom: '8px', textAlign: 'left' }}>No more:</span>
+            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'var(--text)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
+              <li>Keeping dozens of tabs open "for later"</li>
+              <li>Sending links to yourself on WhatsApp</li>
+              <li>Creating random documents for quick notes</li>
+              <li>Losing important things in bookmarks</li>
+            </ul>
+          </div>
+
+          <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--text)', margin: '0 0 20px 0', textAlign: 'left' }}>
+            Just drop it into QuickDrop and continue your work. <strong style={{ color: 'var(--text-h)' }}>Save now. Deal with it later.</strong>
+          </p>
+
           <a
             href="./quickdrop.zip"
             download
@@ -361,68 +376,110 @@ function App() {
         </div>
       </section>
 
-      {/* Core Features */}
+      {/* Built for the Things You Don't Want to Lose */}
       <section className="features-section" id="features">
-        <h2 style={{ fontSize: '24px', margin: '0 0 6px 0', color: 'var(--text-h)' }}>Core Features</h2>
-        <p style={{ color: 'var(--text)', fontSize: '14px', margin: '0 0 24px 0' }}>
-          Designed to stay completely out of your way until you need it.
+        <h2 className="title-gradient" style={{ fontSize: '28px', margin: '0 0 8px 0', textAlign: 'center' }}>
+          Built for the Things You Don't Want to Lose
+        </h2>
+        <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '650px', marginLeft: 'auto', marginRight: 'auto' }}>
+          QuickDrop helps you capture information instantly and return to it when you're ready.
         </p>
 
         <div className="features-grid">
           <div className="feature-card">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="16 16 12 12 8 16"></polyline>
-                <line x1="12" y1="12" x2="12" y2="21"></line>
-                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-              </svg>
-              Drop Zone File Capture
+            <h3 style={{ gap: '6px' }}>
+              <span style={{ fontSize: '18px' }}>👥</span> In a meeting?
             </h3>
-            <p>
-              Drag files directly from any webpage or folder on your desktop straight into the panel. QuickDrop safely stores files in your browser locally, keeping your workspace clean.
-            </p>
+            <p>Open QuickDrop and write notes without switching tabs.</p>
           </div>
 
           <div className="feature-card">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-              Quick Scratchpad Notes
+            <h3 style={{ gap: '6px' }}>
+              <span style={{ fontSize: '18px' }}>💼</span> Found a job but don't have time?
             </h3>
-            <p>
-              A persistent markdown scratchpad that auto-saves your thoughts. Great for writing sudden meeting notes, phone numbers, or copying layout coordinate values.
-            </p>
+            <p>Save the link and close the tab.</p>
           </div>
 
           <div className="feature-card">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
-              Focus Tasks Checklist
+            <h3 style={{ gap: '6px' }}>
+              <span style={{ fontSize: '18px' }}>🖼️</span> Need an image later?
             </h3>
-            <p>
-              Track your instant to-dos for today. The dashboard filters out tasks from previous days to keep you focused on what is right in front of you.
-            </p>
+            <p>Drop it into QuickDrop and keep moving.</p>
           </div>
 
           <div className="feature-card">
-            <h3>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              100% Private & Offline
+            <h3 style={{ gap: '6px' }}>
+              <span style={{ fontSize: '18px' }}>🔍</span> Researching something?
             </h3>
-            <p>
-              No external APIs, databases, tracking scripts, or analytics. Your notes, files, and tasks never leave your local system—making it perfectly safe for corporate environments.
-            </p>
+            <p>Store important links without turning your browser into a tab graveyard.</p>
+          </div>
+        </div>
+
+        <div className="remembers-banner">
+          <div className="remembers-text-container">
+            <span className="remembers-subtitle">Your browser remembers tabs.</span>
+            <h2 className="remembers-title title-gradient" style={{ margin: 0 }}>
+              QuickDrop remembers everything else.
+            </h2>
+          </div>
+          <a
+            href="./quickdrop.zip"
+            download
+            className="remembers-cta-btn"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Add to Chrome
+          </a>
+        </div>
+      </section>
+
+      {/* Divider Line */}
+      <div className="section-divider" style={{ width: '100%', height: '1px', background: 'var(--border)', margin: '40px 0', opacity: 0.8 }}></div>
+
+      {/* Ticks Divider */}
+      <div className="ticks"></div>
+
+      {/* Core Options / Positioning Statements */}
+      <section className="options-section">
+        <h2 className="title-gradient" style={{ fontSize: '26px', margin: '0 0 8px 0', textAlign: 'center' }}>
+          Designed for Your Attention Span
+        </h2>
+        <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+          Everything you need, none of the clutter. QuickDrop replaces chaotic bookmark folders and self-chats with a single focus.
+        </p>
+
+        <div className="options-grid">
+          <div className="option-card">
+
+            <h3>Your Browser's Temporary Memory</h3>
+            <p>Save now. Deal with it later.</p>
+          </div>
+
+          <div className="option-card">
+
+            <h3>Close The Tab. Keep The Information.</h3>
+            <p>Everything important, nothing cluttered.</p>
+          </div>
+
+          <div className="option-card">
+
+            <h3>Stop Sending Links To Yourself.</h3>
+            <p>Store notes, files, links and tasks in one sidebar.</p>
+          </div>
+
+          <div className="option-card">
+
+            <h3>For People Who Keep 50 Tabs Open.</h3>
+            <p>Save what matters and close the rest.</p>
+          </div>
+
+          <div className="option-card">
+
+            <h3>Capture Anything Without Leaving Your Workflow.</h3>
+            <p>Notes. Links. Files. Tasks. One sidebar.</p>
           </div>
         </div>
       </section>
