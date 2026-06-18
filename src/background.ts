@@ -10,7 +10,8 @@ chrome.runtime.onMessage.addListener((request: any, _sender: any, sendResponse: 
   if (request.type === 'SAVE_DATA') {
     chrome.storage.local.set({
       files: request.data.files,
-      tasks: request.data.tasks
+      tasks: request.data.tasks,
+      notes: request.data.notes || []
     }, () => {
       sendResponse({ success: true })
     })
@@ -18,10 +19,11 @@ chrome.runtime.onMessage.addListener((request: any, _sender: any, sendResponse: 
   }
   
   if (request.type === 'LOAD_DATA') {
-    chrome.storage.local.get(['files', 'tasks'], (result: any) => {
+    chrome.storage.local.get(['files', 'tasks', 'notes'], (result: any) => {
       sendResponse({
         files: result.files || [],
-        tasks: result.tasks || []
+        tasks: result.tasks || [],
+        notes: result.notes || []
       })
     })
     return true // Keep the message channel open for async response

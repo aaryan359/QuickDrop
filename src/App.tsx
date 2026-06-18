@@ -1,191 +1,180 @@
+import { useState, useEffect, useRef } from 'react';
+import './App.css';
+import type { FileItem, Task, NoteItem } from './types';
+import { saveData, loadData } from './services/storage';
+import { 
+  getFileType, 
+  formatFileSize, 
+  isValidUrl, 
+  getTodayDateFormatted, 
+  formatDate, 
+  showNotification, 
+  copyToClipboard, 
+  downloadFile, 
+  openUrl 
+} from './utils/helpers';
 
-
-
-import { useState, useEffect } from 'react'
-import './App.css'
-
-// Chrome API type declarations
-declare const chrome: any
-
-interface FileItem {
-  id: string;
-  name: string;
-  type: 'file' | 'image' | 'pdf' | 'text' | 'url';
-  size?: string;
-  content?: string;
-  url?: string;
-  description?: string;
-  timestamp: number;
-}
-
-interface Task {
-  id: string
-  title: string
-  completed: boolean
-  date: Date
-}
-
-// Storage utility functions
-const saveData = async (files: FileItem[], tasks: Task[]) => {
-  try {
-    // Try Chrome storage first
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({
-          type: 'SAVE_DATA',
-          data: { files, tasks }
-        }, (response: any) => {
-          if (response && response.success) {
-            resolve(response)
-          } else {
-            reject(new Error('Chrome storage failed'))
-          }
-        })
-      })
-    } else {
-      // Fallback to localStorage
-      localStorage.setItem('quickdrop-files', JSON.stringify(files))
-      localStorage.setItem('quickdrop-tasks', JSON.stringify(tasks))
-    }
-  } catch (error) {
-    console.error('Error saving data:', error)
-    // Final fallback to localStorage
-    try {
-      localStorage.setItem('quickdrop-files', JSON.stringify(files))
-      localStorage.setItem('quickdrop-tasks', JSON.stringify(tasks))
-    } catch (localError) {
-      console.error('localStorage also failed:', localError)
-    }
-  }
-}
-
-const loadData = async (): Promise<{ files: FileItem[], tasks: Task[] }> => {
-  try {
-    // Try Chrome storage first
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({
-          type: 'LOAD_DATA'
-        }, (response: any) => {
-          if (response) {
-            const files = (response.files || []).map((file: any) => ({
-              ...file,
-              date: new Date(file.date)
-            }))
-            const tasks = (response.tasks || []).map((task: any) => ({
-              ...task,
-              date: new Date(task.date)
-            }))
-            resolve({ files, tasks })
-          } else {
-            reject(new Error('Chrome storage failed'))
-          }
-        })
-      })
-    } else {
-      // Fallback to localStorage
-      const savedFiles = localStorage.getItem('quickdrop-files')
-      const savedTasks = localStorage.getItem('quickdrop-tasks')
-      
-      const files = savedFiles ? JSON.parse(savedFiles).map((file: any) => ({
-        ...file,
-        date: new Date(file.date)
-      })) : []
-      
-      const tasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-        ...task,
-        date: new Date(task.date)
-      })) : []
-      
-      return { files, tasks }
-    }
-  } catch (error) {
-    console.error('Error loading data:', error)
-    // Final fallback to localStorage
-    try {
-      const savedFiles = localStorage.getItem('quickdrop-files')
-      const savedTasks = localStorage.getItem('quickdrop-tasks')
-      
-      const files = savedFiles ? JSON.parse(savedFiles).map((file: any) => ({
-        ...file,
-        date: new Date(file.date)
-      })) : []
-      
-      const tasks = savedTasks ? JSON.parse(savedTasks).map((task: any) => ({
-        ...task,
-        date: new Date(task.date)
-      })) : []
-      
-      return { files, tasks }
-    } catch (localError) {
-      console.error('localStorage also failed:', localError)
-      return { files: [], tasks: [] }
-    }
-  }
-}
+// Components
+import { Header } from './components/Header';
+import { Tabs } from './components/Tabs';
+import { DropTab } from './components/DropTab';
+import { NotesTab } from './components/NotesTab';
+import { FeedTab } from './components/FeedTab';
+import { TasksTab } from './components/TasksTab';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'drop' | 'files' | 'tasks'>('drop')
-  const [files, setFiles] = useState<FileItem[]>([])
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [newTask, setNewTask] = useState('')
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [isDragging, setIsDragging] = useState(false)
-  const [textNote, setTextNote] = useState('')
-  const [urlInput, setUrlInput] = useState('')
-  const [urlDescription, setUrlDescription] = useState('') // Added state for URL description
-  const [showTaskHistory, setShowTaskHistory] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [hoveredFile, setHoveredFile] = useState<string | null>(null)
-  // Removed fileInputRef and file input logic
+  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks'>('drop');
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [notes, setNotes] = useState<NoteItem[]>([]);
+
+  // Notes states
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [editorTitle, setEditorTitle] = useState('');
+  const [editorContent, setEditorContent] = useState('');
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  // Input states
+  const [newTask, setNewTask] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [urlDescription, setUrlDescription] = useState(''); 
+  const [showTaskHistory, setShowTaskHistory] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hoveredFile, setHoveredFile] = useState<string | null>(null);
+  const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes' | 'tasks'>('all');
 
   // Load data from storage on component mount
   useEffect(() => {
     const loadDataOnMount = async () => {
       try {
-        const { files: loadedFiles, tasks: loadedTasks } = await loadData()
-        setFiles(loadedFiles)
-        setTasks(loadedTasks)
+        const { files: loadedFiles, tasks: loadedTasks, notes: loadedNotes } = await loadData();
+        setFiles(loadedFiles);
+        setTasks(loadedTasks);
+        setNotes(loadedNotes);
       } catch (error) {
-        console.error('Failed to load data:', error)
+        console.error('Failed to load data:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
     
-    loadDataOnMount()
-  }, [])
+    loadDataOnMount();
+  }, []);
 
-  // Save data to storage whenever files or tasks change
+  // Save data to storage whenever files, tasks, or notes change
   useEffect(() => {
     if (!isLoading) {
-      saveData(files, tasks)
+      saveData(files, tasks, notes);
     }
-  }, [files, tasks, isLoading])
+  }, [files, tasks, notes, isLoading]);
+
+  // Sync editor content editable DOM when activeNoteId changes
+  useEffect(() => {
+    if (editorRef.current) {
+      if (editorRef.current.innerHTML !== editorContent) {
+        editorRef.current.innerHTML = editorContent;
+      }
+    }
+  }, [activeNoteId]);
+
+  const handleNoteChange = (title: string, content: string) => {
+    setEditorTitle(title);
+    setEditorContent(content);
+
+    if (activeNoteId) {
+      setNotes(prev => prev.map(note => 
+        note.id === activeNoteId 
+          ? { ...note, title, content, timestamp: Date.now() }
+          : note
+      ));
+    } else {
+      // Auto-create note on first character typed (zero friction)
+      if (title.trim() || (content.trim() && content !== '<br>' && content !== '<div><br></div>' && content !== '')) {
+        const newId = Date.now().toString() + Math.random();
+        const newNote: NoteItem = {
+          id: newId,
+          title: title || 'Untitled Note',
+          content: content,
+          timestamp: Date.now()
+        };
+        setNotes(prev => [newNote, ...prev]);
+        setActiveNoteId(newId);
+      }
+    }
+  };
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      handleNoteChange(editorTitle, html);
+    }
+  };
+
+  const format = (command: string) => {
+    document.execCommand(command, false);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      handleEditorInput();
+    }
+  };
+
+  const createNewNote = () => {
+    setActiveNoteId(null);
+    setEditorTitle('');
+    setEditorContent('');
+    if (editorRef.current) {
+      editorRef.current.innerHTML = '';
+    }
+    showNotification('Started a new note!');
+  };
+
+  const deleteNote = (noteId: string) => {
+    setNotes(prev => prev.filter(note => note.id !== noteId));
+    if (activeNoteId === noteId) {
+      setActiveNoteId(null);
+      setEditorTitle('');
+      setEditorContent('');
+      if (editorRef.current) {
+        editorRef.current.innerHTML = '';
+      }
+    }
+    showNotification('Note deleted!');
+  };
+
+  const selectNote = (note: NoteItem) => {
+    setActiveNoteId(note.id);
+    setEditorTitle(note.title);
+    setEditorContent(note.content);
+    if (editorRef.current) {
+      editorRef.current.innerHTML = note.content;
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
+    e.preventDefault();
+    setIsDragging(false);
+  };
 
   const handleFileDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+    e.preventDefault();
+    setIsDragging(false);
     
-    const droppedFiles = Array.from(e.dataTransfer.files)
-    processFiles(droppedFiles)
-  }
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    processFiles(droppedFiles);
+  };
 
   const processFiles = (fileList: File[]) => {
     fileList.forEach(file => {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target?.result as string
+        const content = e.target?.result as string;
         const fileItem: FileItem = {
           id: Date.now().toString() + Math.random(),
           name: file.name,
@@ -193,171 +182,155 @@ function App() {
           content,
           size: formatFileSize(file.size),
           timestamp: Date.now()
-        }
-        setFiles(prev => [...prev, fileItem])
-      }
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const handleTextSubmit = () => {
-    if (textNote.trim()) {
-      const textItem: FileItem = {
-        id: Date.now().toString() + Math.random(),
-        name: `Text Note ${new Date().toLocaleString()}`,
-        type: 'text',
-        content: textNote,
-        timestamp: Date.now()
-      }
-      setFiles(prev => [...prev, textItem])
-      setTextNote('')
-      showNotification('Text note added!')
-    }
-  }
+        };
+        setFiles(prev => [fileItem, ...prev]);
+        showNotification('File added successfully!');
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (urlInput.trim() && urlDescription.trim()) {
+    if (urlInput.trim()) {
       const newUrl: FileItem = {
-        id: Date.now().toString(),
+        id: Date.now().toString() + Math.random(),
         name: urlInput.trim(),
         type: 'url',
         url: urlInput.trim(),
-        description: urlDescription.trim(),
+        description: urlDescription.trim() || 'Text Snippet',
         timestamp: Date.now()
       };
       setFiles(prev => [newUrl, ...prev]);
       setUrlInput('');
       setUrlDescription('');
-      showNotification('URL added successfully!');
+      showNotification('Snippet saved!');
     }
   };
 
-  const getFileType = (fileName: string): FileItem['type'] => {
-    const extension = fileName.split('.').pop()?.toLowerCase()
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image'
-    if (extension === 'pdf') return 'pdf'
-    return 'file'
-  }
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
-
-  const copyToClipboard = async (content: string) => {
-    try {
-      await navigator.clipboard.writeText(content)
-      showNotification('Copied to clipboard!')
-    } catch (err) {
-      console.error('Failed to copy:', err)
-      showNotification('Failed to copy to clipboard')
-    }
-  }
-
-  const downloadFile = (file: FileItem) => {
-    const link = document.createElement('a')
-    link.href = file.content || '' // Use file.content if available, otherwise empty string
-    link.download = file.name
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    showNotification('Download started!')
-  }
-
-  const openUrl = (url: string) => {
-    window.open(url, '_blank')
-  }
-
   const deleteFile = (fileId: string) => {
-    setFiles(prev => prev.filter(file => file.id !== fileId))
-    showNotification('File deleted!')
-  }
-
-  const showNotification = (message: string) => {
-    const notification = document.createElement('div')
-    notification.className = 'notification'
-    notification.textContent = message
-    document.body.appendChild(notification)
-    
-    setTimeout(() => {
-      notification.remove()
-    }, 3000)
-  }
+    setFiles(prev => prev.filter(file => file.id !== fileId));
+    showNotification('Item deleted!');
+  };
 
   const addTask = () => {
     if (newTask.trim()) {
       const task: Task = {
         id: Date.now().toString() + Math.random(),
-        title: newTask,
+        title: newTask.trim(),
         completed: false,
         date: new Date()
-      }
-      setTasks(prev => [...prev, task])
-      setNewTask('')
-      showNotification('Task added!')
+      };
+      setTasks(prev => [task, ...prev]);
+      setNewTask('');
+      showNotification('Task added!');
     }
-  }
+  };
 
   const toggleTask = (taskId: string) => {
     setTasks(prev => prev.map(task => 
       task.id === taskId ? { ...task, completed: !task.completed } : task
-    ))
-  }
+    ));
+  };
 
   const deleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId))
-    showNotification('Task deleted!')
-  }
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+    showNotification('Task deleted!');
+  };
 
   const getTasksByDate = (date: string) => {
-    return tasks.filter(task => 
-      task.date.toISOString().split('T')[0] === date
-    )
-  }
+    return tasks.filter(task => {
+      const taskDateStr = task.date instanceof Date 
+        ? task.date.toISOString().split('T')[0] 
+        : new Date(task.date).toISOString().split('T')[0];
+      return taskDateStr === date;
+    });
+  };
 
   const getCompletedTasks = (date: string) => {
-    return getTasksByDate(date).filter(task => task.completed).length
-  }
+    return getTasksByDate(date).filter(task => task.completed).length;
+  };
 
   const getTotalTasks = (date: string) => {
-    return getTasksByDate(date).length
-  }
+    return getTasksByDate(date).length;
+  };
 
   const getPastDays = (days: number) => {
-    const dates = []
+    const dates = [];
     for (let i = 0; i < days; i++) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      dates.push(date.toISOString().split('T')[0])
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
     }
-    return dates
-  }
+    return dates;
+  };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-    
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today'
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday'
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
-      })
+  const editNoteFromList = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      selectNote(note);
+      setActiveTab('notes');
     }
-  }
+  };
+
+  const getUnifiedItems = () => {
+    const items: any[] = [];
+    
+    files.forEach(f => {
+      const isUrlType = f.type === 'url';
+      items.push({
+        id: f.id,
+        title: isUrlType ? (f.description || 'Snippet') : f.name,
+        subtitle: isUrlType ? f.name : (f.size || 'File'),
+        type: f.type,
+        timestamp: f.timestamp,
+        raw: f
+      });
+    });
+    
+    notes.forEach(n => {
+      const excerpt = n.content 
+        ? n.content.replace(/<[^>]*>/g, '').substring(0, 50)
+        : 'Empty note';
+      items.push({
+        id: n.id,
+        title: n.title || 'Untitled Note',
+        subtitle: excerpt || 'Text Note',
+        type: 'note',
+        timestamp: n.timestamp,
+        raw: n
+      });
+    });
+    
+    tasks.forEach(t => {
+      const time = t.date instanceof Date ? t.date.getTime() : new Date(t.date).getTime();
+      items.push({
+        id: t.id,
+        title: t.title,
+        subtitle: t.completed ? 'Completed' : 'Pending',
+        type: 'task',
+        timestamp: time,
+        completed: t.completed,
+        raw: t
+      });
+    });
+    
+    let filtered = items;
+    if (fileListFilter === 'files') {
+      filtered = items.filter(item => ['file', 'image', 'pdf', 'text'].includes(item.type));
+    } else if (fileListFilter === 'links') {
+      filtered = items.filter(item => item.type === 'url');
+    } else if (fileListFilter === 'notes') {
+      filtered = items.filter(item => item.type === 'note');
+    } else if (fileListFilter === 'tasks') {
+      filtered = items.filter(item => item.type === 'task');
+    }
+
+    return filtered.sort((a, b) => b.timestamp - a.timestamp);
+  };
 
   const renderFilePreview = (file: FileItem) => {
-    if (hoveredFile !== file.id) return null
+    if (hoveredFile !== file.id) return null;
 
     return (
       <div className="file-preview show">
@@ -394,28 +367,12 @@ function App() {
                 <p className="file-date">{new Date(file.timestamp).toLocaleString()}</p>
                 {file.size && <p className="file-size">{file.size}</p>}
               </div>
-              <div className="file-actions">
-                <button 
-                  onClick={() => copyToClipboard(file.content || '')}
-                  title="Copy to clipboard"
-                  className="action-btn copy-btn"
-                >
-                  📋
-                </button>
-                <button 
-                  onClick={() => downloadFile(file)}
-                  title="Download file"
-                  className="action-btn download-btn"
-                >
-                  ⬇️
-                </button>
-              </div>
             </div>
           )}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -425,296 +382,103 @@ function App() {
           <p>Loading QuickDrop...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="app">
       <div className="header">
-        <h1>QuickDrop</h1>
-        <div className="tabs">
-          <button 
-            className={`tab ${activeTab === 'drop' ? 'active' : ''}`}
-            onClick={() => setActiveTab('drop')}
-          >
-            📁 Drop Files
-          </button>
-          <button 
-            className={`tab ${activeTab === 'files' ? 'active' : ''}`}
-            onClick={() => setActiveTab('files')}
-          >
-            📋 File List ({files.length})
-          </button>
-          <button 
-            className={`tab ${activeTab === 'tasks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tasks')}
-          >
-            ✅ Tasks
-          </button>
-        </div>
+        <Header todayDate={getTodayDateFormatted()} />
+        <Tabs 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          feedCount={getUnifiedItems().length} 
+        />
       </div>
 
       <div className="content">
         {activeTab === 'drop' && (
-          <div className="drop-zone">
-            <div 
-              className={`file-drop-area ${isDragging ? 'dragging' : ''}`}
-              onDrop={handleFileDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-            >
-              <div className="drop-icon">📁</div>
-              <h3>Drop files here</h3>
-              <p>Drag and drop any files, images, PDFs, or documents</p>
-              <div className="drop-hint">
-                <span>Supported: Images, PDFs, Text files, URLs</span>
-              </div>
-            </div>
+          <DropTab 
+            isDragging={isDragging}
+            handleFileDrop={handleFileDrop}
+            handleDragOver={handleDragOver}
+            handleDragLeave={handleDragLeave}
+            handleUrlSubmit={handleUrlSubmit}
+            urlInput={urlInput}
+            setUrlInput={setUrlInput}
+            urlDescription={urlDescription}
+            setUrlDescription={setUrlDescription}
+          />
+        )}
 
-            <div className="input-sections">
-              <div className="input-section">
-                <h4>📝 Add Text Note</h4>
-                <textarea 
-                  placeholder="Enter your text note..."
-                  value={textNote}
-                  onChange={(e) => setTextNote(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                      handleTextSubmit()
-                    }
-                  }}
-                />
-                <button onClick={handleTextSubmit}>
-                  Add Text Note
-                </button>
-              </div>
-
-              <div className="input-section">
-                <h3>Add URL</h3>
-                <form onSubmit={handleUrlSubmit} className="url-form">
-                <input
-                    type="text"
-                    placeholder="Title"
-                    value={urlDescription}
-                    onChange={(e) => setUrlDescription(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="url"
-                    placeholder="Enter URL..."
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    required
-                  />
-                  
-                  <button type="submit">Add URL</button>
-                </form>
-              </div>
-            </div>
-          </div>
+        {activeTab === 'notes' && (
+          <NotesTab 
+            editorRef={editorRef}
+            editorTitle={editorTitle}
+            handleNoteChange={handleNoteChange}
+            createNewNote={createNewNote}
+            format={format}
+            handleEditorInput={handleEditorInput}
+            notes={notes}
+            activeNoteId={activeNoteId}
+            selectNote={selectNote}
+            deleteNote={deleteNote}
+          />
         )}
 
         {activeTab === 'files' && (
-          <div className="files-list">
-            <div className="files-header">
-              <h3>Your Files ({files.length})</h3>
-              {files.length > 0 && (
-                <button 
-                  className="clear-all-btn"
-                  onClick={() => {
-                    setFiles([])
-                    showNotification('All files cleared!')
-                  }}
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
-            {files.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📁</div>
-                <h4>No files uploaded yet</h4>
-                <p>Go to the Drop Files tab to add some files!</p>
-              </div>
-            ) : (
-              <div className="files-grid">
-                {files.map((file) => (
-          <div key={file.id} className="file-card" 
-               onMouseEnter={file.type === 'image' ? () => setHoveredFile(file.id) : undefined}
-               onMouseLeave={file.type === 'image' ? () => setHoveredFile(null) : undefined}>
-                    {renderFilePreview(file)}
-
-                    <div className="file-info">
-                      <div className="file-name">
-                        {file.type === 'url' ? (
-                          <div className="url-display">
-                            <div className="url-title">{file.description}</div>
-                            <div className="url-link">{file.name}</div>
-                          </div>
-                        ) : (
-                          file.name
-                        )}
-                      </div>
-                      <div className="file-size">{file.size}</div>
-                    </div>
-                    <div className="file-actions">
-                      <button 
-                        onClick={() => copyToClipboard(file.content || '')}
-                        title="Copy to clipboard"
-                        className="action-btn copy-btn"
-                      >
-                        📋
-                      </button>
-                      {file.type === 'url' && (
-                        <button 
-                          onClick={() => openUrl(file.url!)}
-                          title="Open URL"
-                          className="action-btn open-btn"
-                        >
-                          🔗
-                        </button>
-                      )}
-                      {(file.type === 'image' || file.type === 'pdf') && (
-                        <button 
-                          onClick={() => downloadFile(file)}
-                          title="Download file"
-                          className="action-btn download-btn"
-                        >
-                          ⬇️
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => deleteFile(file.id)}
-                        title="Delete file"
-                        className="action-btn delete-btn"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <FeedTab 
+            files={files}
+            notes={notes}
+            tasks={tasks}
+            fileListFilter={fileListFilter}
+            setFileListFilter={setFileListFilter}
+            getUnifiedItems={getUnifiedItems}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+            deleteNote={deleteNote}
+            deleteFile={deleteFile}
+            editNoteFromList={editNoteFromList}
+            copyToClipboard={(content) => copyToClipboard(content, showNotification)}
+            downloadFile={(file) => downloadFile(file, showNotification)}
+            openUrl={openUrl}
+            isValidUrl={isValidUrl}
+            setHoveredFile={setHoveredFile}
+            renderFilePreview={renderFilePreview}
+            clearAll={() => {
+              setFiles([]);
+              setNotes([]);
+              setTasks([]);
+              setActiveNoteId(null);
+              setEditorTitle('');
+              setEditorContent('');
+              if (editorRef.current) editorRef.current.innerHTML = '';
+              showNotification('All history cleared!');
+            }}
+          />
         )}
 
         {activeTab === 'tasks' && (
-          <div className="tasks-section">
-            <div className="task-header">
-              <h3>Task Tracker</h3>
-              <div className="task-controls">
-                <div className="date-selector">
-                  <input 
-                    type="date" 
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </div>
-                <button 
-                  className="history-toggle"
-                  onClick={() => setShowTaskHistory(!showTaskHistory)}
-                >
-                  {showTaskHistory ? '📅 Hide History' : '📅 Show History'}
-                </button>
-              </div>
-            </div>
-
-            {showTaskHistory && (
-              <div className="task-history">
-                <h4>Recent Days</h4>
-                <div className="history-days">
-                  {getPastDays(7).map(date => {
-                    const dayTasks = getTasksByDate(date)
-                    const completed = dayTasks.filter(task => task.completed).length
-                    const total = dayTasks.length
-                    const progress = total > 0 ? Math.round((completed / total) * 100) : 0
-                    
-                    return (
-                      <div key={date} className="history-day">
-                        <div className="history-date">{formatDate(date)}</div>
-                        <div className="history-stats">
-                          <span>{completed}/{total} completed</span>
-                          <div className="progress-bar">
-                            <div 
-                              className="progress-fill" 
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="task-stats">
-              <div className="stat">
-                <span className="stat-label">Total Tasks</span>
-                <span className="stat-value">{getTotalTasks(selectedDate)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Completed</span>
-                <span className="stat-value">{getCompletedTasks(selectedDate)}</span>
-              </div>
-              <div className="stat">
-                <span className="stat-label">Progress</span>
-                <span className="stat-value">
-                  {getTotalTasks(selectedDate) > 0 
-                    ? Math.round((getCompletedTasks(selectedDate) / getTotalTasks(selectedDate)) * 100)
-                    : 0}%
-                </span>
-              </div>
-            </div>
-
-            <div className="add-task">
-              <input 
-                type="text"
-                placeholder="What do you need to do today?"
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    addTask()
-                  }
-                }}
-              />
-              <button onClick={addTask}>Add Task</button>
-            </div>
-
-            <div className="tasks-list">
-              {getTasksByDate(selectedDate).length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">✅</div>
-                  <h4>No tasks for this date</h4>
-                  <p>Add some tasks above to get started!</p>
-                </div>
-              ) : (
-                getTasksByDate(selectedDate).map(task => (
-                  <div key={task.id} className={`task-item ${task.completed ? 'completed' : ''}`}>
-                    <input 
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={() => toggleTask(task.id)}
-                      className="task-checkbox"
-                    />
-                    <span className="task-title">{task.title}</span>
-                    <button 
-                      onClick={() => deleteTask(task.id)}
-                      className="delete-task"
-                      title="Delete task"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <TasksTab 
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            showTaskHistory={showTaskHistory}
+            setShowTaskHistory={setShowTaskHistory}
+            getPastDays={getPastDays}
+            getTasksByDate={getTasksByDate}
+            formatDate={formatDate}
+            getTotalTasks={getTotalTasks}
+            getCompletedTasks={getCompletedTasks}
+            newTask={newTask}
+            setNewTask={setNewTask}
+            addTask={addTask}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+          />
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
