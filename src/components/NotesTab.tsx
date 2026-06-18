@@ -7,7 +7,10 @@ interface NotesTabProps {
   handleNoteChange: (title: string, content: string) => void;
   createNewNote: () => void;
   format: (command: string) => void;
+  formatList: () => void;
   handleEditorInput: () => void;
+  handleSaveNote: () => void;
+  handleClearNote: () => void;
   notes: NoteItem[];
   activeNoteId: string | null;
   selectNote: (note: NoteItem) => void;
@@ -20,7 +23,10 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   handleNoteChange,
   createNewNote,
   format,
+  formatList,
   handleEditorInput,
+  handleSaveNote,
+  handleClearNote,
   notes,
   activeNoteId,
   selectNote,
@@ -45,41 +51,59 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         </div>
         
         <div className="note-toolbar">
-          <button 
-            type="button" 
-            className="toolbar-btn bold-btn" 
-            onClick={() => format('bold')}
-            title="Bold"
-          >
-            B
-          </button>
-          <button 
-            type="button" 
-            className="toolbar-btn italic-btn" 
-            onClick={() => format('italic')}
-            title="Italic"
-          >
-            I
-          </button>
-          <button 
-            type="button" 
-            className="toolbar-btn list-btn" 
-            onClick={() => format('insertUnorderedList')}
-            title="Bullet List"
-          >
-            • List
-          </button>
-          <button 
-            type="button" 
-            className="toolbar-btn clear-btn" 
-            onClick={() => format('removeFormat')}
-            title="Clear Formatting"
-          >
-            Clear
-          </button>
-          <span className="autosave-indicator">
-            ✓ Saved
-          </span>
+          <div className="toolbar-left">
+            <button 
+              type="button" 
+              className="toolbar-btn bold-btn" 
+              onClick={() => format('bold')}
+              title="Bold"
+            >
+              B
+            </button>
+            <button 
+              type="button" 
+              className="toolbar-btn italic-btn" 
+              onClick={() => format('italic')}
+              title="Italic"
+            >
+              I
+            </button>
+            <button 
+              type="button" 
+              className="toolbar-btn list-btn" 
+              onClick={formatList}
+              title="Bullet List"
+            >
+              • List
+            </button>
+            <button 
+              type="button" 
+              className="toolbar-btn clear-format-btn" 
+              onClick={() => format('removeFormat')}
+              title="Clear Formatting"
+            >
+              Tx
+            </button>
+          </div>
+          
+          <div className="toolbar-right">
+            <button 
+              type="button" 
+              className="toolbar-action-btn clear-note-btn" 
+              onClick={handleClearNote}
+              title="Clear Note Text"
+            >
+              Clear
+            </button>
+            <button 
+              type="button" 
+              className="toolbar-action-btn save-note-btn" 
+              onClick={handleSaveNote}
+              title="Save Note"
+            >
+              Save Note
+            </button>
+          </div>
         </div>
         
         <div 
@@ -87,7 +111,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           className="note-body-editor"
           contentEditable={true}
           onInput={handleEditorInput}
-          data-placeholder="Start typing notes here... (Autosaves instantly)"
+          data-placeholder="Start typing notes here..."
         ></div>
       </div>
       
@@ -95,7 +119,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         <h3>Notes History ({notes.length})</h3>
         {notes.length === 0 ? (
           <div className="empty-state-notes">
-            <p>No saved notes. Start typing above to create one immediately!</p>
+            <p>No saved notes. Click "Save Note" to add one to history!</p>
           </div>
         ) : (
           <div className="notes-grid">

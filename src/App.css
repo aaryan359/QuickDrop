@@ -303,7 +303,7 @@ body {
 .note-title-input {
   flex: 1;
   border: none;
-  border-bottom: 1.5px solid #f1f5f9;
+  border-bottom: 1.5px solid #cbd5e1;
   font-size: 15px;
   font-weight: 700;
   padding: 6px 0;
@@ -337,10 +337,22 @@ body {
 .note-toolbar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
   padding: 6px 0;
   border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .toolbar-btn {
@@ -364,28 +376,75 @@ body {
 .bold-btn { font-weight: 800; }
 .italic-btn { font-style: italic; }
 
-.autosave-indicator {
-  font-size: 10px;
-  color: #10b981;
+.toolbar-action-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
   font-weight: 600;
-  margin-left: auto;
-  opacity: 0.8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-note-btn {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.clear-note-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.save-note-btn {
+  background: #10b981;
+  border: 1px solid #10b981;
+  color: white;
+}
+
+.save-note-btn:hover {
+  background: #059669;
+  border-color: #059669;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .note-body-editor {
-  min-height: 100px;
-  max-height: 140px;
+  min-height: 120px;
+  max-height: 160px;
   overflow-y: auto;
   outline: none;
   font-size: 13px;
   line-height: 1.5;
   color: #334155;
-  padding: 4px 2px;
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fafbfd;
+  transition: all 0.2s ease;
+}
+
+.note-body-editor:focus {
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .note-body-editor:empty:before {
   content: attr(data-placeholder);
   color: #94a3b8;
+}
+
+/* Styled lists inside editor */
+.note-body-editor ul,
+.note-body-editor ol {
+  margin: 0 0 10px 0;
+  padding-left: 20px !important;
+  list-style-type: disc !important;
+}
+
+.note-body-editor li {
+  margin-bottom: 4px;
+  display: list-item !important;
 }
 
 .saved-notes-container {

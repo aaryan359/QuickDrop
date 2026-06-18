@@ -95,33 +95,11 @@ function App() {
   const handleNoteChange = (title: string, content: string) => {
     setEditorTitle(title);
     setEditorContent(content);
-
-    if (activeNoteId) {
-      setNotes(prev => prev.map(note => 
-        note.id === activeNoteId 
-          ? { ...note, title, content, timestamp: Date.now() }
-          : note
-      ));
-    } else {
-      // Auto-create note on first character typed (zero friction)
-      if (title.trim() || (content.trim() && content !== '<br>' && content !== '<div><br></div>' && content !== '')) {
-        const newId = Date.now().toString() + Math.random();
-        const newNote: NoteItem = {
-          id: newId,
-          title: title || 'Untitled Note',
-          content: content,
-          timestamp: Date.now()
-        };
-        setNotes(prev => [newNote, ...prev]);
-        setActiveNoteId(newId);
-      }
-    }
   };
 
   const handleEditorInput = () => {
     if (editorRef.current) {
-      const html = editorRef.current.innerHTML;
-      handleNoteChange(editorTitle, html);
+      setEditorContent(editorRef.current.innerHTML);
     }
   };
 
@@ -129,7 +107,73 @@ function App() {
     document.execCommand(command, false);
     if (editorRef.current) {
       editorRef.current.focus();
-      handleEditorInput();
+      setEditorContent(editorRef.current.innerHTML);
+    }
+  };
+
+  const formatList = () => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+      
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        document.execCommand('insertUnorderedList', false);
+        setEditorContent(editorRef.current.innerHTML);
+        return;
+      }
+
+      const content = editorRef.current.innerHTML.trim();
+      // If the editor is completely empty, initialize with a list structure
+      if (content === '' || content === '<br>' || content === '<div><br></div>') {
+        editorRef.current.innerHTML = '<ul><li>&nbsp;</li></ul>';
+        // Move selection inside the li
+        const li = editorRef.current.querySelector('li');
+        if (li) {
+          const range = document.createRange();
+          range.selectNodeContents(li);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      } else {
+        document.execCommand('insertUnorderedList', false);
+      }
+      setEditorContent(editorRef.current.innerHTML);
+    }
+  };
+
+  const handleSaveNote = () => {
+    const cleanContent = editorContent.trim();
+    const isContentEmpty = !cleanContent || cleanContent === '<br>' || cleanContent === '<div><br></div>' || cleanContent === '<ul><li>&nbsp;</li></ul>' || cleanContent === '<ul><li><br></li></ul>';
+    
+    if (!editorTitle.trim() && isContentEmpty) {
+      showNotification('Cannot save an empty note!');
+      return;
+    }
+
+    const titleToSave = editorTitle.trim() || 'Untitled Note';
+
+    // Always create a new note in history to prevent overwriting previous content
+    const newId = Date.now().toString() + Math.random();
+    const newNote: NoteItem = {
+      id: newId,
+      title: titleToSave,
+      content: editorContent,
+      timestamp: Date.now()
+    };
+    
+    setNotes(prev => [newNote, ...prev]);
+    setActiveNoteId(newId);
+    showNotification('Note saved successfully!');
+  };
+
+  const handleClearNote = () => {
+    if (window.confirm('Clear all text in the editor? Any unsaved changes will be lost.')) {
+      setEditorTitle('');
+      setEditorContent('');
+      if (editorRef.current) {
+        editorRef.current.innerHTML = '';
+      }
     }
   };
 
@@ -432,7 +476,10 @@ function App() {
             handleNoteChange={handleNoteChange}
             createNewNote={createNewNote}
             format={format}
+            formatList={formatList}
             handleEditorInput={handleEditorInput}
+            handleSaveNote={handleSaveNote}
+            handleClearNote={handleClearNote}
             notes={notes}
             activeNoteId={activeNoteId}
             selectNote={selectNote}
