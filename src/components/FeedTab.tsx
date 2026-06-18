@@ -5,8 +5,8 @@ interface FeedTabProps {
   files: FileItem[];
   notes: NoteItem[];
   tasks: Task[];
-  fileListFilter: 'all' | 'files' | 'links' | 'notes' | 'tasks';
-  setFileListFilter: (filter: 'all' | 'files' | 'links' | 'notes' | 'tasks') => void;
+  fileListFilter: 'all' | 'files' | 'links' | 'notes';
+  setFileListFilter: (filter: 'all' | 'files' | 'links' | 'notes') => void;
   getUnifiedItems: () => any[];
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
@@ -89,13 +89,6 @@ export const FeedTab: React.FC<FeedTabProps> = ({
             <polyline points="14 3 14 8 19 8"></polyline>
           </svg>
           Notes
-        </button>
-        <button className={`filter-pill ${fileListFilter === 'tasks' ? 'active' : ''}`} onClick={() => setFileListFilter('tasks')}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="pill-icon">
-            <polyline points="9 11 12 14 22 4"></polyline>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-          Tasks
         </button>
       </div>
 

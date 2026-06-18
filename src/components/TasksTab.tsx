@@ -3,12 +3,7 @@ import type { Task } from '../types';
 
 interface TasksTabProps {
   selectedDate: string;
-  setSelectedDate: (date: string) => void;
-  showTaskHistory: boolean;
-  setShowTaskHistory: (show: boolean) => void;
-  getPastDays: (days: number) => string[];
   getTasksByDate: (date: string) => Task[];
-  formatDate: (dateStr: string) => string;
   getTotalTasks: (date: string) => number;
   getCompletedTasks: (date: string) => number;
   newTask: string;
@@ -20,12 +15,7 @@ interface TasksTabProps {
 
 export const TasksTab: React.FC<TasksTabProps> = ({
   selectedDate,
-  setSelectedDate,
-  showTaskHistory,
-  setShowTaskHistory,
-  getPastDays,
   getTasksByDate,
-  formatDate,
   getTotalTasks,
   getCompletedTasks,
   newTask,
@@ -42,52 +32,8 @@ export const TasksTab: React.FC<TasksTabProps> = ({
   return (
     <div className="tasks-section">
       <div className="task-header">
-        <h3>Tasks</h3>
-        <div className="task-controls">
-          <div className="date-selector">
-            <input 
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
-          </div>
-          <button 
-            className="history-toggle"
-            onClick={() => setShowTaskHistory(!showTaskHistory)}
-          >
-            {showTaskHistory ? 'Hide Stats' : 'Stats History'}
-          </button>
-        </div>
+        <h3>Tasks (Today)</h3>
       </div>
-
-      {showTaskHistory && (
-        <div className="task-history">
-          <h4>7-Day Stats</h4>
-          <div className="history-days">
-            {getPastDays(7).map(date => {
-              const dayTasks = getTasksByDate(date);
-              const comp = dayTasks.filter(t => t.completed).length;
-              const tot = dayTasks.length;
-              const prog = tot > 0 ? Math.round((comp / tot) * 100) : 0;
-              
-              return (
-                <div key={date} className="history-day">
-                  <div className="history-date">{formatDate(date)}</div>
-                  <div className="history-stats">
-                    <span>{comp}/{tot}</span>
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-fill" 
-                        style={{ width: `${prog}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       <div className="task-stats-bar">
         <div className="stat-pill">

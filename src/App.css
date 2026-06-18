@@ -991,10 +991,11 @@ body {
 .add-task input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #cbd5e1;
   border-radius: 8px;
   font-size: 12px;
   background: #f8fafc;
+  color: #1e293b;
 }
 
 .add-task input:focus {
@@ -1072,13 +1073,19 @@ body {
   border: none;
   cursor: pointer;
   font-size: 11px;
-  padding: 2px;
-  opacity: 0.4;
-  transition: opacity 0.2s;
+  padding: 2px !important;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+  color: #ef4444;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-task:hover {
   opacity: 1;
+  transform: scale(1.15);
+  color: #dc2626;
 }
 
 /* File Preview overlay */

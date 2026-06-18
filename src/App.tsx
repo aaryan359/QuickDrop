@@ -7,7 +7,6 @@ import {
   formatFileSize, 
   isValidUrl, 
   getTodayDateFormatted, 
-  formatDate, 
   showNotification, 
   copyToClipboard, 
   downloadFile, 
@@ -36,14 +35,13 @@ function App() {
 
   // Input states
   const [newTask, setNewTask] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const selectedDate = new Date().toISOString().split('T')[0];
   const [isDragging, setIsDragging] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [urlDescription, setUrlDescription] = useState(''); 
-  const [showTaskHistory, setShowTaskHistory] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredFile, setHoveredFile] = useState<string | null>(null);
-  const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes' | 'tasks'>('all');
+  const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes'>('all');
 
   // Load data from storage on component mount
   useEffect(() => {
@@ -312,15 +310,7 @@ function App() {
     return getTasksByDate(date).length;
   };
 
-  const getPastDays = (days: number) => {
-    const dates = [];
-    for (let i = 0; i < days; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-    return dates;
-  };
+
 
   const editNoteFromList = (noteId: string) => {
     const note = notes.find(n => n.id === noteId);
@@ -359,19 +349,6 @@ function App() {
       });
     });
     
-    tasks.forEach(t => {
-      const time = t.date instanceof Date ? t.date.getTime() : new Date(t.date).getTime();
-      items.push({
-        id: t.id,
-        title: t.title,
-        subtitle: t.completed ? 'Completed' : 'Pending',
-        type: 'task',
-        timestamp: time,
-        completed: t.completed,
-        raw: t
-      });
-    });
-    
     let filtered = items;
     if (fileListFilter === 'files') {
       filtered = items.filter(item => ['file', 'image', 'pdf', 'text'].includes(item.type));
@@ -379,8 +356,6 @@ function App() {
       filtered = items.filter(item => item.type === 'url');
     } else if (fileListFilter === 'notes') {
       filtered = items.filter(item => item.type === 'note');
-    } else if (fileListFilter === 'tasks') {
-      filtered = items.filter(item => item.type === 'task');
     }
 
     return filtered.sort((a, b) => b.timestamp - a.timestamp);
@@ -522,12 +497,7 @@ function App() {
         {activeTab === 'tasks' && (
           <TasksTab 
             selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            showTaskHistory={showTaskHistory}
-            setShowTaskHistory={setShowTaskHistory}
-            getPastDays={getPastDays}
             getTasksByDate={getTasksByDate}
-            formatDate={formatDate}
             getTotalTasks={getTotalTasks}
             getCompletedTasks={getCompletedTasks}
             newTask={newTask}
