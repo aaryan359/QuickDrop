@@ -11,6 +11,14 @@ function App() {
     { id: 2, text: 'Audit extension source code for security', done: false },
     { id: 3, text: 'Load unpacked build inside Chrome extensions', done: false },
   ])
+  const [savedItems, setSavedItems] = useState([
+    { id: '1', title: 'https://vite.dev/config', type: 'url', status: 'review', reminderDate: '' },
+    { id: '2', title: 'Storage quotas: use chrome.storage', type: 'text', status: 'review', reminderDate: '' }
+  ]);
+  const [currentTabTitle, setCurrentTabTitle] = useState('Design Sync & Review')
+  const [currentTabUrl, setCurrentTabUrl] = useState('https://meet.google.com/abc-defg-hij')
+  const [linkReminder, setLinkReminder] = useState('')
+  const [tabReminder, setTabReminder] = useState('')
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -167,48 +175,267 @@ function App() {
                 <div className="sidebar-body">
                   {activeTab === 'drop' && (
                     <>
-                      <div className="sidebar-drop-area">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+                      {/* Drag & Drop zone */}
+                      <div className="sidebar-drop-area" style={{ padding: '8px 12px' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
                           <polyline points="16 16 12 12 8 16"></polyline>
                           <line x1="12" y1="12" x2="12" y2="21"></line>
                           <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
                         </svg>
-                        <div style={{ fontWeight: 'bold', fontSize: '11px' }}>Drag files to drop</div>
-                        <span style={{ fontSize: '9px', color: 'var(--text)' }}>Or paste links below</span>
+                        <div style={{ fontWeight: 'bold', fontSize: '10px' }}>Drag files to drop</div>
                       </div>
-                      <div className="sidebar-input-group">
-                        <input
-                          type="text"
-                          placeholder="Paste URL here..."
-                          value={liveInputText}
-                          onChange={(e) => setLiveInputText(e.target.value)}
-                        />
+
+                      {/* Add Link / Snippet */}
+                      <div className="mockup-section" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '6px' }}>
+                        <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px' }}>ADD LINK / SNIPPET</label>
+                        <div className="sidebar-input-group">
+                          <input
+                            type="text"
+                            placeholder="Paste URL or text..."
+                            value={liveInputText}
+                            onChange={(e) => setLiveInputText(e.target.value)}
+                          />
+                          <button
+                            className="sidebar-btn-sm"
+                            onClick={() => {
+                              if (liveInputText) {
+                                setSavedItems([
+                                  {
+                                    id: Date.now().toString(),
+                                    title: liveInputText,
+                                    type: liveInputText.startsWith('http') ? 'url' : 'text',
+                                    status: 'review',
+                                    reminderDate: linkReminder
+                                  },
+                                  ...savedItems
+                                ]);
+                                setLiveInputText('');
+                                setLinkReminder('');
+                              }
+                            }}
+                          >
+                            Drop
+                          </button>
+                        </div>
+
+                        {/* Quick options row */}
+                        <div className="mock-options-row" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className={`mock-opt-btn ${linkReminder === 'Tomorrow' ? 'active' : ''}`}
+                            onClick={() => setLinkReminder(linkReminder === 'Tomorrow' ? '' : 'Tomorrow')}
+                            style={{
+                              flex: 1,
+                              fontSize: '9px',
+                              padding: '4px 6px',
+                              background: linkReminder === 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
+                              color: linkReminder === 'Tomorrow' ? '#fff' : 'var(--text-h)',
+                              border: '1px solid var(--bm-border)',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Remind Tomorrow
+                          </button>
+                          <button
+                            type="button"
+                            className={`mock-opt-btn ${linkReminder && linkReminder !== 'Tomorrow' ? 'active' : ''}`}
+                            onClick={(e) => {
+                              const parent = e.currentTarget.parentElement;
+                              const picker = parent?.querySelector('.hidden-picker') as HTMLInputElement;
+                              if (picker) {
+                                try { picker.showPicker(); } catch { picker.click(); }
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              fontSize: '9px',
+                              padding: '4px 6px',
+                              background: linkReminder && linkReminder !== 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
+                              color: linkReminder && linkReminder !== 'Tomorrow' ? '#fff' : 'var(--text-h)',
+                              border: '1px solid var(--bm-border)',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {linkReminder && linkReminder !== 'Tomorrow' ? 'Custom Time ✓' : 'Pick Date/Time'}
+                          </button>
+                          <input
+                            type="datetime-local"
+                            className="hidden-picker"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setLinkReminder(new Date(e.target.value).toLocaleDateString());
+                              } else {
+                                setLinkReminder('');
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Save Current Tab */}
+                      <div className="mockup-section" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '6px' }}>
+                        <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px' }}>SAVE CURRENT TAB</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <input
+                            type="text"
+                            placeholder="Tab Title"
+                            value={currentTabTitle}
+                            onChange={(e) => setCurrentTabTitle(e.target.value)}
+                            style={{
+                              border: '1px solid var(--bm-border)',
+                              background: 'var(--bm-bg)',
+                              color: 'var(--text-h)',
+                              borderRadius: '4px',
+                              padding: '4px 8px',
+                              fontSize: '10px',
+                              outline: 'none',
+                              width: '100%',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Tab URL"
+                            value={currentTabUrl}
+                            onChange={(e) => setCurrentTabUrl(e.target.value)}
+                            style={{
+                              border: '1px solid var(--bm-border)',
+                              background: 'var(--bm-bg)',
+                              color: 'var(--text-h)',
+                              borderRadius: '4px',
+                              padding: '4px 8px',
+                              fontSize: '10px',
+                              outline: 'none',
+                              width: '100%',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Quick options row for current tab */}
+                        <div className="mock-options-row" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            className={`mock-opt-btn ${tabReminder === 'Tomorrow' ? 'active' : ''}`}
+                            onClick={() => setTabReminder(tabReminder === 'Tomorrow' ? '' : 'Tomorrow')}
+                            style={{
+                              flex: 1,
+                              fontSize: '9px',
+                              padding: '4px 6px',
+                              background: tabReminder === 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
+                              color: tabReminder === 'Tomorrow' ? '#fff' : 'var(--text-h)',
+                              border: '1px solid var(--bm-border)',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Remind Tomorrow
+                          </button>
+                          <button
+                            type="button"
+                            className={`mock-opt-btn ${tabReminder && tabReminder !== 'Tomorrow' ? 'active' : ''}`}
+                            onClick={(e) => {
+                              const parent = e.currentTarget.parentElement;
+                              const picker = parent?.querySelector('.hidden-tab-picker') as HTMLInputElement;
+                              if (picker) {
+                                try { picker.showPicker(); } catch { picker.click(); }
+                              }
+                            }}
+                            style={{
+                              flex: 1,
+                              fontSize: '9px',
+                              padding: '4px 6px',
+                              background: tabReminder && tabReminder !== 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
+                              color: tabReminder && tabReminder !== 'Tomorrow' ? '#fff' : 'var(--text-h)',
+                              border: '1px solid var(--bm-border)',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {tabReminder && tabReminder !== 'Tomorrow' ? 'Custom Time ✓' : 'Pick Date/Time'}
+                          </button>
+                          <input
+                            type="datetime-local"
+                            className="hidden-tab-picker"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setTabReminder(new Date(e.target.value).toLocaleDateString());
+                              } else {
+                                setTabReminder('');
+                              }
+                            }}
+                          />
+                        </div>
+
                         <button
                           className="sidebar-btn-sm"
+                          style={{ width: '100%', marginTop: '6px', padding: '5px' }}
                           onClick={() => {
-                            if (liveInputText) {
-                              setLiveInputText('')
+                            if (currentTabTitle && currentTabUrl) {
+                              setSavedItems([
+                                {
+                                  id: Date.now().toString(),
+                                  title: currentTabTitle,
+                                  type: 'url',
+                                  status: 'review',
+                                  reminderDate: tabReminder
+                                },
+                                ...savedItems
+                              ]);
+                              setTabReminder('');
                             }
                           }}
                         >
-                          {liveInputText ? 'Clear' : 'Drop'}
+                          Save
                         </button>
                       </div>
-                      <div className="sidebar-list">
-                        {liveInputText && (
-                          <div className="sidebar-item live-item-pulse">
-                            <span className="badge note">Live</span>
-                            <div className="item-text">{liveInputText}</div>
+
+                      {/* Unified list */}
+                      <div className="sidebar-list" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '8px' }}>
+                        {savedItems.map(item => (
+                          <div key={item.id} className="sidebar-item" style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'stretch' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className={`badge ${item.type === 'url' ? 'url' : 'note'}`}>{item.type === 'url' ? 'Link' : 'Text'}</span>
+                              <div className="item-text" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+
+                              {/* Done checkmark icon button in sidebar */}
+                              <button
+                                onClick={() => {
+                                  setSavedItems(savedItems.map(si =>
+                                    si.id === item.id ? { ...si, status: si.status === 'done' ? 'review' : 'done' } : si
+                                  ));
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  padding: '2px 4px',
+                                  fontSize: '11px',
+                                  color: item.status === 'done' ? '#10b981' : '#94a3b8'
+                                }}
+                                title={item.status === 'done' ? 'Mark as Review' : 'Mark as Done'}
+                              >
+                                ✓
+                              </button>
+                            </div>
+
+                            {/* Done / Reminder labels on card in mockup list */}
+                            {(item.status === 'done' || item.reminderDate) && (
+                              <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
+                                {item.status === 'done' && (
+                                  <span style={{ fontSize: '8px', background: '#d1fae5', color: '#065f46', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>✓ Done</span>
+                                )}
+                                {item.reminderDate && (
+                                  <span style={{ fontSize: '8px', background: '#eff6ff', color: '#1e40af', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>⏰ {item.reminderDate}</span>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        <div className="sidebar-item">
-                          <span className="badge url">Link</span>
-                          <div className="item-text">https://vite.dev/config</div>
-                        </div>
-                        <div className="sidebar-item">
-                          <span className="badge note">Text</span>
-                          <div className="item-text">Storage quotas: use chrome.storage</div>
-                        </div>
+                        ))}
                       </div>
                     </>
                   )}
