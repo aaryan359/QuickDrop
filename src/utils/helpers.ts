@@ -85,3 +85,27 @@ export const openUrl = (url: string): void => {
   }
   window.open(target, '_blank');
 };
+
+export const formatReminder = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  
+  const isToday = date.toDateString() === today.toDateString();
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+  
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
+  if (isToday) {
+    return `Today at ${timeStr}`;
+  } else if (isTomorrow) {
+    return `Tomorrow at ${timeStr}`;
+  } else {
+    return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
+  }
+};
+

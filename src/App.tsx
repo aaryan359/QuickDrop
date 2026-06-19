@@ -19,6 +19,8 @@ import { NotesTab } from './components/NotesTab';
 import { FeedTab } from './components/FeedTab';
 import { TasksTab } from './components/TasksTab';
 
+declare const chrome: any;
+
 function App() {
   const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks'>('drop');
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -40,6 +42,32 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredFile, setHoveredFile] = useState<string | null>(null);
   const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes'>('all');
+
+  const [currentTabInfo, setCurrentTabInfo] = useState<{ title: string; url: string; available: boolean }>({
+    title: '',
+    url: '',
+    available: false
+  });
+
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any) => {
+        if (tabs && tabs[0]) {
+          setCurrentTabInfo({
+            title: tabs[0].title || '',
+            url: tabs[0].url || '',
+            available: true
+          });
+        }
+      });
+    } else {
+      setCurrentTabInfo({
+        title: 'AWS Bedrock Pricing',
+        url: 'https://aws.amazon.com/bedrock/pricing/',
+        available: true
+      });
+    }
+  }, []);
 
   // Load data from storage on component mount
   useEffect(() => {
@@ -244,14 +272,16 @@ function App() {
     });
   };
 
-  const handleUrlSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (urlInput.trim()) {
+  const handleUrlSubmit = async (
+    url: string, 
+    description: string,
+    status?: 'review' | 'done' | 'archived',
+    reminderDate?: string
+  ) => {
+    if (url.trim()) {
       try {
-        const newUrl = await DataService.addUrlItem(urlInput, urlDescription);
+        const newUrl = await DataService.addUrlItem(url, description, status, reminderDate);
         setFiles(prev => [newUrl, ...prev]);
-        setUrlInput('');
-        setUrlDescription('');
         showNotification('Snippet saved!');
       } catch (err) {
         showNotification('Failed to save snippet!');
@@ -329,6 +359,28 @@ function App() {
 
 
 
+  const toggleItemStatus = async (itemId: string, itemType: string) => {
+    try {
+      if (itemType === 'note') {
+        const updatedNotes = notes.map(n => 
+          n.id === itemId ? { ...n, status: (n.status === 'done' ? 'review' as const : 'done' as const) } : n
+        );
+        setNotes(updatedNotes);
+        await DataService.syncData(files, tasks, updatedNotes);
+      } else {
+        const updatedFiles = files.map(f => 
+          f.id === itemId ? { ...f, status: (f.status === 'done' ? 'review' as const : 'done' as const) } : f
+        );
+        setFiles(updatedFiles);
+        await DataService.syncData(updatedFiles, tasks, notes);
+      }
+      showNotification('Status updated!');
+    } catch (err) {
+      showNotification('Failed to update status!');
+      console.error(err);
+    }
+  };
+
   const editNoteFromList = (noteId: string) => {
     const note = notes.find(n => n.id === noteId);
     if (note) {
@@ -348,6 +400,8 @@ function App() {
         subtitle: isUrlType ? f.name : (f.size || 'File'),
         type: f.type,
         timestamp: f.timestamp,
+        status: f.status,
+        reminderDate: f.reminderDate,
         raw: f
       });
     });
@@ -362,6 +416,8 @@ function App() {
         subtitle: excerpt || 'Text Note',
         type: 'note',
         timestamp: n.timestamp,
+        status: n.status,
+        reminderDate: n.reminderDate,
         raw: n
       });
     });
@@ -458,6 +514,7 @@ function App() {
             urlDescription={urlDescription}
             setUrlDescription={setUrlDescription}
             onManualUpload={processFiles}
+            currentTabInfo={currentTabInfo}
           />
         )}
 
@@ -498,6 +555,7 @@ function App() {
             isValidUrl={isValidUrl}
             setHoveredFile={setHoveredFile}
             renderFilePreview={renderFilePreview}
+            toggleItemStatus={toggleItemStatus}
             clearAll={() => {
               setFiles([]);
               setNotes([]);

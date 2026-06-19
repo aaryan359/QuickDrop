@@ -1,5 +1,6 @@
 import React from 'react';
 import type { FileItem, NoteItem, Task } from '../types';
+import { formatReminder } from '../utils/helpers';
 
 interface FeedTabProps {
   files: FileItem[];
@@ -20,6 +21,7 @@ interface FeedTabProps {
   setHoveredFile: (id: string | null) => void;
   renderFilePreview: (file: FileItem) => React.ReactNode;
   clearAll: () => void;
+  toggleItemStatus: (id: string, type: string) => void;
 }
 
 export const FeedTab: React.FC<FeedTabProps> = ({
@@ -40,7 +42,8 @@ export const FeedTab: React.FC<FeedTabProps> = ({
   isValidUrl,
   setHoveredFile,
   renderFilePreview,
-  clearAll
+  clearAll,
+  toggleItemStatus
 }) => {
   const unifiedItems = getUnifiedItems();
 
@@ -147,12 +150,38 @@ export const FeedTab: React.FC<FeedTabProps> = ({
                       )}
                     </div>
                   )}
+
+                  {/* Status/Reminder labels in Feed list */}
+                  {(item.status === 'done' || item.reminderDate) && (
+                    <div className="card-labels-row" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                      {item.status === 'done' && (
+                        <span className="card-badge done-badge" style={{ background: '#d1fae5', color: '#065f46', fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>
+                          ✓ Done
+                        </span>
+                      )}
+                      {item.reminderDate && (
+                        <span className="card-badge reminder-badge" style={{ background: '#eff6ff', color: '#1e40af', fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          ⏰ {formatReminder(item.reminderDate)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="file-actions">
                 {item.type === 'note' && (
                   <>
+                    <button
+                      onClick={() => toggleItemStatus(item.id, item.type)}
+                      title={item.status === 'done' ? "Mark as Review" : "Mark as Done"}
+                      className={`action-btn done-btn ${item.status === 'done' ? 'active' : ''}`}
+                      style={item.status === 'done' ? { color: '#10b981' } : {}}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </button>
                     <button
                       onClick={() => editNoteFromList(item.id)}
                       title="Edit Note"
@@ -188,6 +217,16 @@ export const FeedTab: React.FC<FeedTabProps> = ({
 
                 {item.type === 'url' && (
                   <>
+                    <button
+                      onClick={() => toggleItemStatus(item.id, item.type)}
+                      title={item.status === 'done' ? "Mark as Review" : "Mark as Done"}
+                      className={`action-btn done-btn ${item.status === 'done' ? 'active' : ''}`}
+                      style={item.status === 'done' ? { color: '#10b981' } : {}}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </button>
                     <button
                       onClick={() => copyToClipboard(item.raw.name)}
                       title="Copy Snippet"
@@ -239,6 +278,16 @@ export const FeedTab: React.FC<FeedTabProps> = ({
 
                 {!['note', 'url', 'task'].includes(item.type) && (
                   <>
+                    <button
+                      onClick={() => toggleItemStatus(item.id, item.type)}
+                      title={item.status === 'done' ? "Mark as Review" : "Mark as Done"}
+                      className={`action-btn done-btn ${item.status === 'done' ? 'active' : ''}`}
+                      style={item.status === 'done' ? { color: '#10b981' } : {}}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </button>
                     <button
                       onClick={() => copyToClipboard(item.raw.content || '')}
                       title="Copy content"

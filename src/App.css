@@ -1243,3 +1243,65 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Horizontal option buttons & date-picker styles */
+.horizontal-options-row {
+  display: flex;
+  flex-direction: row !important; /* Force horizontal layout */
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.input-section .option-btn {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  outline: none !important;
+  width: auto !important; /* Force inline layout */
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.input-section .option-btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #1e293b !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.input-section .option-btn.active {
+  background: #e2f3ea !important;
+  border-color: #10b981 !important;
+  color: #059669 !important;
+}
+
+/* Card indicator badges */
+.card-badge {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.done-badge {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.reminder-badge {
+  background: #eff6ff;
+  color: #1e40af;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}

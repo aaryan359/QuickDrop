@@ -68,14 +68,21 @@ export class DataService {
   }
 
   // Create/Add a URL snippet
-  static async addUrlItem(url: string, description: string): Promise<FileItem> {
+  static async addUrlItem(
+    url: string, 
+    description: string,
+    status?: 'review' | 'done' | 'archived',
+    reminderDate?: string
+  ): Promise<FileItem> {
     const newItem: FileItem = {
       id: Date.now().toString() + Math.random(),
       name: url.trim(),
       type: 'url',
       url: url.trim(),
       description: description.trim() || 'Text Snippet',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      status: status || 'review',
+      reminderDate
     };
 
     if (API_BASE_URL) {

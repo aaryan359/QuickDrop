@@ -7,6 +7,8 @@ export interface FileItem {
   url?: string;
   description?: string;
   timestamp: number;
+  status?: 'review' | 'done' | 'archived';
+  reminderDate?: string;
 }
 
 export interface Task {
@@ -21,4 +23,6 @@ export interface NoteItem {
   title: string;
   content: string;
   timestamp: number;
+  status?: 'review' | 'done' | 'archived';
+  reminderDate?: string;
 }
