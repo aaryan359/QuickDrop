@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import type { QuickDropGroup } from '../types';
 import { formatReminder } from '../utils/helpers';
 
 declare const chrome: any;
@@ -25,11 +24,6 @@ interface DropTabProps {
     url: string;
     available: boolean;
   };
-  groups: QuickDropGroup[];
-  selectedGroupId: string;
-  selectedSubgroupId: string;
-  setSelectedGroupId: (id: string) => void;
-  setSelectedSubgroupId: (id: string) => void;
 }
 
 export const DropTab: React.FC<DropTabProps> = ({
@@ -43,12 +37,7 @@ export const DropTab: React.FC<DropTabProps> = ({
   urlDescription,
   setUrlDescription,
   onManualUpload,
-  currentTabInfo,
-  groups,
-  selectedGroupId,
-  selectedSubgroupId,
-  setSelectedGroupId,
-  setSelectedSubgroupId
+  currentTabInfo
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const snippetDateRef = useRef<HTMLInputElement>(null);
@@ -131,39 +120,8 @@ export const DropTab: React.FC<DropTabProps> = ({
     }
   };
 
-  const parentGroups = groups.filter((group) => !group.parentGroupId);
-  const childGroups = groups.filter((group) => group.parentGroupId === selectedGroupId);
-
   return (
     <div className="drop-zone">
-      <div className="input-section compact-section">
-        <h3>Save Into</h3>
-        <div className="group-picker">
-          <select
-            value={selectedGroupId}
-            onChange={(event) => {
-              setSelectedGroupId(event.target.value);
-              setSelectedSubgroupId('');
-            }}
-          >
-            <option value="">No group</option>
-            {parentGroups.map((group) => (
-              <option key={group.id} value={group.id}>{group.name}</option>
-            ))}
-          </select>
-          <select
-            value={selectedSubgroupId}
-            onChange={(event) => setSelectedSubgroupId(event.target.value)}
-            disabled={!selectedGroupId}
-          >
-            <option value="">No subgroup</option>
-            {childGroups.map((group) => (
-              <option key={group.id} value={group.id}>{group.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       <div
         className={`file-drop-area ${isDragging ? 'dragging' : ''}`}
         onDrop={handleFileDrop}

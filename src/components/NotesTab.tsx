@@ -4,159 +4,132 @@ import type { NoteItem } from '../types';
 interface NotesTabProps {
   editorRef: RefObject<HTMLDivElement | null>;
   editorTitle: string;
-  handleNoteChange: (title: string, content: string) => void;
+  editorContent: string;
+  noteMode: 'list' | 'view' | 'editor';
+  activeNote: NoteItem | null;
+  setEditorTitle: (title: string) => void;
   createNewNote: () => void;
+  editActiveNote: () => void;
+  closeNoteView: () => void;
   format: (command: string) => void;
   formatList: () => void;
   handleEditorInput: () => void;
   handleSaveNote: () => void;
   handleClearNote: () => void;
   notes: NoteItem[];
-  activeNoteId: string | null;
-  selectNote: (note: NoteItem) => void;
+  openNote: (note: NoteItem) => void;
   deleteNote: (id: string) => void;
-  selectedGroupId: string;
-  selectedSubgroupId: string;
 }
 
 export const NotesTab: React.FC<NotesTabProps> = ({
   editorRef,
   editorTitle,
-  handleNoteChange,
+  editorContent,
+  noteMode,
+  activeNote,
+  setEditorTitle,
   createNewNote,
+  editActiveNote,
+  closeNoteView,
   format,
   formatList,
   handleEditorInput,
   handleSaveNote,
   handleClearNote,
   notes,
-  activeNoteId,
-  selectNote,
+  openNote,
   deleteNote,
-  selectedGroupId,
-  selectedSubgroupId
 }) => {
-  const currentContent = notes.find(n => n.id === activeNoteId)?.content || '';
+  if (noteMode === 'editor') {
+    return (
+      <div className="notes-section">
+        <div className="notes-editor-container">
+          <div className="notes-editor-header">
+            <input
+              type="text"
+              className="note-title-input"
+              placeholder="Untitled Note..."
+              value={editorTitle}
+              onChange={(event) => setEditorTitle(event.target.value)}
+            />
+            <button className="new-note-btn" onClick={closeNoteView} title="Back to notes">
+              Back
+            </button>
+          </div>
+
+          <div className="note-toolbar">
+            <div className="toolbar-left">
+              <button type="button" className="toolbar-btn bold-btn" onClick={() => format('bold')} title="Bold">B</button>
+              <button type="button" className="toolbar-btn italic-btn" onClick={() => format('italic')} title="Italic">I</button>
+              <button type="button" className="toolbar-btn list-btn" onClick={formatList} title="Bullet List">• List</button>
+              <button type="button" className="toolbar-btn clear-format-btn" onClick={() => format('removeFormat')} title="Clear Formatting">Tx</button>
+            </div>
+
+            <div className="toolbar-right">
+              <button type="button" className="toolbar-action-btn clear-note-btn" onClick={handleClearNote}>
+                Clear
+              </button>
+              <button type="button" className="toolbar-action-btn save-note-btn" onClick={handleSaveNote}>
+                Save
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={editorRef}
+            className="note-body-editor"
+            contentEditable={true}
+            onInput={handleEditorInput}
+            data-placeholder="Start typing notes here..."
+            suppressContentEditableWarning
+          >
+            {editorContent ? null : ''}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (noteMode === 'view' && activeNote) {
+    return (
+      <div className="notes-section">
+        <div className="note-detail-view">
+          <div className="note-detail-header">
+            <button className="new-note-btn" onClick={closeNoteView}>Back</button>
+            <button className="new-note-btn" onClick={editActiveNote}>Edit</button>
+          </div>
+          <h3>{activeNote.title || 'Untitled Note'}</h3>
+          <div
+            className="note-detail-content"
+            dangerouslySetInnerHTML={{ __html: activeNote.content || 'Empty note...' }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="notes-section">
-      <div className="notes-editor-container">
-        <div className="notes-editor-header">
-          <input 
-            type="text" 
-            className="note-title-input" 
-            placeholder="Untitled Note..." 
-            value={editorTitle}
-            onChange={(e) => handleNoteChange(e.target.value, currentContent)}
-          />
-          <button className="new-note-btn" onClick={createNewNote} title="New Note">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            New
-          </button>
-        </div>
-        {(selectedGroupId || selectedSubgroupId) && (
-          <div className="selected-group-hint">
-            Saving notes into selected group{selectedSubgroupId ? ' / subgroup' : ''}
-          </div>
-        )}
-        
-        <div className="note-toolbar">
-          <div className="toolbar-left">
-            <button 
-              type="button" 
-              className="toolbar-btn bold-btn" 
-              onClick={() => format('bold')}
-              title="Bold"
-            >
-              B
-            </button>
-            <button 
-              type="button" 
-              className="toolbar-btn italic-btn" 
-              onClick={() => format('italic')}
-              title="Italic"
-            >
-              I
-            </button>
-            <button 
-              type="button" 
-              className="toolbar-btn list-btn" 
-              onClick={formatList}
-              title="Bullet List"
-            >
-              • List
-            </button>
-            <button 
-              type="button" 
-              className="toolbar-btn clear-format-btn" 
-              onClick={() => format('removeFormat')}
-              title="Clear Formatting"
-            >
-              Tx
-            </button>
-          </div>
-          
-          <div className="toolbar-right">
-            <button 
-              type="button" 
-              className="toolbar-action-btn clear-note-btn" 
-              onClick={handleClearNote}
-              title="Clear Note Text"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
-                <path d="M20 20H4"></path>
-                <path d="M20 4L4 20"></path>
-              </svg>
-              Clear
-            </button>
-            <button 
-              type="button" 
-              className="toolbar-action-btn save-note-btn" 
-              onClick={handleSaveNote}
-              title="Save Note"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}>
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Save Note
-            </button>
-          </div>
-        </div>
-        
-        <div 
-          ref={editorRef}
-          className="note-body-editor"
-          contentEditable={true}
-          onInput={handleEditorInput}
-          data-placeholder="Start typing notes here..."
-        ></div>
-      </div>
-      
       <div className="saved-notes-container">
-        <h3>Notes History ({notes.length})</h3>
+        <div className="notes-list-header">
+          <h3>Notes ({notes.length})</h3>
+          <button className="new-note-btn" onClick={createNewNote}>New Note</button>
+        </div>
+
         {notes.length === 0 ? (
           <div className="empty-state-notes">
-            <p>No saved notes. Click "Save Note" to add one to history!</p>
+            <p>No saved notes yet.</p>
           </div>
         ) : (
           <div className="notes-grid">
-            {notes.map(note => (
-              <div 
-                key={note.id} 
-                className={`note-card-item ${activeNoteId === note.id ? 'active' : ''}`}
-                onClick={() => selectNote(note)}
-              >
+            {notes.map((note) => (
+              <div key={note.id} className="note-card-item" onClick={() => openNote(note)}>
                 <div className="note-card-header">
                   <h4 className="note-card-title">{note.title || 'Untitled Note'}</h4>
-                  <button 
+                  <button
                     className="delete-note-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       deleteNote(note.id);
                     }}
                     title="Delete Note"
@@ -167,10 +140,10 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                     </svg>
                   </button>
                 </div>
-                <div 
+                <div
                   className="note-card-excerpt"
                   dangerouslySetInnerHTML={{ __html: note.content || 'Empty note...' }}
-                ></div>
+                />
               </div>
             ))}
           </div>

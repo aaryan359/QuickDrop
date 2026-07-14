@@ -1,7 +1,7 @@
 import type { FileItem, Task, NoteItem } from '../types';
 import { getFileType, formatFileSize } from '../utils/helpers';
 import { getBackendClient } from './backend/backendClient';
-import { createCloudFile, createCloudNote, createCloudUrl } from './backend/firebaseBackend';
+import { createCloudFile, createCloudNote, createCloudUrl, updateCloudNote } from './backend/firebaseBackend';
 
 export class DataService {
   // Load all data
@@ -102,6 +102,13 @@ export class DataService {
   // Delete a Note
   static async deleteNote(noteId: string): Promise<void> {
     await getBackendClient().deleteItem(noteId);
+  }
+
+  static async updateNote(note: NoteItem): Promise<void> {
+    const backend = getBackendClient();
+    if (backend.mode === 'firebase') {
+      await updateCloudNote(note);
+    }
   }
 
   // Create/Add a Task

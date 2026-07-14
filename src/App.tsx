@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
-import type { FileItem, Task, NoteItem, QuickDropGroup, QuickDropUser } from './types';
+import type { FileItem, Task, NoteItem, QuickDropUser } from './types';
 import { DataService } from './services/dataService';
-import { getConfiguredBackendMode } from './services/backend/backendClient';
 import { isFirebaseConfigured } from './services/firebase';
 import {
   createAccountWithEmail,
+  getAuthErrorMessage,
+  getGoogleRedirectUri,
   onAuthUserChanged,
   signInAnonymously,
   signInWithEmail,
-  signInWithGoogle,
   signOut,
 } from './services/authService';
-import { createGroup, getUserGroups } from './services/groupService';
 import { 
   isValidUrl, 
   getTodayDateFormatted, 
@@ -29,21 +28,25 @@ import { DropTab } from './components/DropTab';
 import { NotesTab } from './components/NotesTab';
 import { FeedTab } from './components/FeedTab';
 import { TasksTab } from './components/TasksTab';
-import { AccountTab } from './components/AccountTab';
-import { GroupsTab } from './components/GroupsTab';
 
 declare const chrome: any;
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks' | 'groups' | 'account'>('drop');
+  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks'>('drop');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
-  const [groups, setGroups] = useState<QuickDropGroup[]>([]);
   const [user, setUser] = useState<QuickDropUser | null>(null);
+  const [showAuthPanel, setShowAuthPanel] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-in' | 'create'>('sign-in');
+  const [authMessage, setAuthMessage] = useState('');
+  const [isAuthBusy, setIsAuthBusy] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
 
   // Notes states
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [noteMode, setNoteMode] = useState<'list' | 'view' | 'editor'>('list');
   const [editorTitle, setEditorTitle] = useState('');
   const [editorContent, setEditorContent] = useState('');
   const editorRef = useRef<HTMLDivElement>(null);
@@ -57,8 +60,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredFile, setHoveredFile] = useState<string | null>(null);
   const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes'>('all');
-  const [selectedGroupId, setSelectedGroupId] = useState('');
-  const [selectedSubgroupId, setSelectedSubgroupId] = useState('');
 
   const [currentTabInfo, setCurrentTabInfo] = useState<{ title: string; url: string; available: boolean }>({
     title: '',
@@ -92,6 +93,7 @@ function App() {
     return onAuthUserChanged((authUser) => {
       setUser(authUser);
       if (authUser) {
+        setShowAuthPanel(false);
         loadCloudData();
       }
     });
@@ -99,12 +101,10 @@ function App() {
 
   const loadCloudData = async () => {
     try {
-      const [{ files: loadedFiles, tasks: loadedTasks, notes: loadedNotes }, loadedGroups] =
-        await Promise.all([DataService.loadAllData(), getUserGroups()]);
+      const { files: loadedFiles, tasks: loadedTasks, notes: loadedNotes } = await DataService.loadAllData();
       setFiles(loadedFiles);
       setTasks(loadedTasks);
       setNotes(loadedNotes);
-      setGroups(loadedGroups);
     } catch (error) {
       console.error('Failed to load cloud data:', error);
     }
@@ -148,19 +148,14 @@ function App() {
     }
   }, [files, tasks, notes, isLoading]);
 
-  // Sync editor content editable DOM when activeNoteId changes
+  // Sync editor content editable DOM when the note editor opens or changes.
   useEffect(() => {
     if (editorRef.current) {
       if (editorRef.current.innerHTML !== editorContent) {
         editorRef.current.innerHTML = editorContent;
       }
     }
-  }, [activeNoteId]);
-
-  const handleNoteChange = (title: string, content: string) => {
-    setEditorTitle(title);
-    setEditorContent(content);
-  };
+  }, [activeNoteId, editorContent, noteMode]);
 
   const handleEditorInput = () => {
     if (editorRef.current) {
@@ -219,14 +214,30 @@ function App() {
     const titleToSave = editorTitle.trim() || 'Untitled Note';
 
     try {
+      if (activeNoteId) {
+        const existingNote = notes.find((note) => note.id === activeNoteId);
+        if (!existingNote) return;
+        const updatedNote: NoteItem = {
+          ...existingNote,
+          title: titleToSave,
+          content: editorContent,
+        };
+        await DataService.updateNote(updatedNote);
+        const updatedNotes = notes.map((note) => note.id === activeNoteId ? updatedNote : note);
+        setNotes(updatedNotes);
+        await DataService.syncData(files, tasks, updatedNotes);
+        showNotification('Note updated!');
+        setNoteMode('view');
+        return;
+      }
+
       const newNote = await DataService.addNoteItem(
         titleToSave,
-        editorContent,
-        selectedGroupId || undefined,
-        selectedSubgroupId || undefined
+        editorContent
       );
       setNotes(prev => [newNote, ...prev]);
       setActiveNoteId(newNote.id);
+      setNoteMode('view');
       showNotification('Note saved successfully!');
     } catch (err) {
       showNotification('Failed to save note!');
@@ -246,6 +257,7 @@ function App() {
 
   const createNewNote = () => {
     setActiveNoteId(null);
+    setNoteMode('editor');
     setEditorTitle('');
     setEditorContent('');
     if (editorRef.current) {
@@ -262,6 +274,7 @@ function App() {
         setActiveNoteId(null);
         setEditorTitle('');
         setEditorContent('');
+        setNoteMode('list');
         if (editorRef.current) {
           editorRef.current.innerHTML = '';
         }
@@ -275,11 +288,26 @@ function App() {
 
   const selectNote = (note: NoteItem) => {
     setActiveNoteId(note.id);
+    setNoteMode('view');
+  };
+
+  const editActiveNote = () => {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
     setEditorTitle(note.title);
     setEditorContent(note.content);
+    setNoteMode('editor');
     if (editorRef.current) {
       editorRef.current.innerHTML = note.content;
     }
+  };
+
+  const closeNoteView = () => {
+    setNoteMode('list');
+    setActiveNoteId(null);
+    setEditorTitle('');
+    setEditorContent('');
+    if (editorRef.current) editorRef.current.innerHTML = '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -308,9 +336,7 @@ function App() {
         try {
           const fileItem = await DataService.addFile(
             file,
-            content,
-            selectedGroupId || undefined,
-            selectedSubgroupId || undefined
+            content
           );
           setFiles(prev => [fileItem, ...prev]);
           showNotification('File added successfully!');
@@ -335,9 +361,7 @@ function App() {
           url,
           description,
           status,
-          reminderDate,
-          selectedGroupId || undefined,
-          selectedSubgroupId || undefined
+          reminderDate
         );
         setFiles(prev => [newUrl, ...prev]);
         showNotification('Snippet saved!');
@@ -442,69 +466,80 @@ function App() {
   const editNoteFromList = (noteId: string) => {
     const note = notes.find(n => n.id === noteId);
     if (note) {
-      selectNote(note);
+      setActiveNoteId(note.id);
+      setEditorTitle(note.title);
+      setEditorContent(note.content);
+      setNoteMode('editor');
+      if (editorRef.current) {
+        editorRef.current.innerHTML = note.content;
+      }
       setActiveTab('notes');
     }
   };
 
-  const handleSaveCloudGroup = async (name: string, parentGroupId?: string) => {
-    try {
-      const createdGroup = user
-        ? await createGroup({ name, parentGroupId })
-        : {
-            id: Date.now().toString() + Math.random(),
-            userId: 'local',
-            name,
-            parentGroupId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-
-      setGroups((prev) => [createdGroup, ...prev]);
-      showNotification(parentGroupId ? 'Subgroup created!' : 'Group created!');
-    } catch (error) {
-      showNotification('Failed to create group!');
-      console.error(error);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-      showNotification('Signed in with Google!');
-    } catch (error) {
-      showNotification('Google sign in failed!');
-      console.error(error);
-    }
-  };
-
   const handleEmailSignIn = async (email: string, password: string) => {
+    setIsAuthBusy(true);
+    setAuthMessage('');
     try {
       await signInWithEmail(email, password);
+      setShowAuthPanel(false);
       showNotification('Signed in!');
     } catch (error) {
-      showNotification('Email sign in failed!');
+      const message = getAuthErrorMessage(error);
+      setAuthMessage(message);
+      showNotification(message);
       console.error(error);
+    } finally {
+      setIsAuthBusy(false);
     }
   };
 
   const handleEmailCreate = async (email: string, password: string) => {
+    setIsAuthBusy(true);
+    setAuthMessage('');
     try {
       await createAccountWithEmail(email, password);
+      setShowAuthPanel(false);
       showNotification('Account created!');
     } catch (error) {
-      showNotification('Account creation failed!');
+      const message = getAuthErrorMessage(error);
+      setAuthMessage(message);
+      showNotification(message);
       console.error(error);
+    } finally {
+      setIsAuthBusy(false);
+    }
+  };
+
+  const submitAuthEmail = () => {
+    if (!authEmail.trim() || !authPassword.trim()) {
+      const message = 'Enter email and password.';
+      setAuthMessage(message);
+      showNotification(message);
+      return;
+    }
+
+    if (authMode === 'create') {
+      handleEmailCreate(authEmail.trim(), authPassword);
+    } else {
+      handleEmailSignIn(authEmail.trim(), authPassword);
     }
   };
 
   const handleAnonymousSignIn = async () => {
+    setIsAuthBusy(true);
+    setAuthMessage('');
     try {
       await signInAnonymously();
+      setShowAuthPanel(false);
       showNotification('Anonymous session started!');
     } catch (error) {
-      showNotification('Anonymous sign in failed!');
+      const message = getAuthErrorMessage(error);
+      setAuthMessage(message);
+      showNotification(message);
       console.error(error);
+    } finally {
+      setIsAuthBusy(false);
     }
   };
 
@@ -512,6 +547,7 @@ function App() {
     try {
       await signOut();
       setUser(null);
+      setShowAuthPanel(false);
       showNotification('Signed out!');
     } catch (error) {
       showNotification('Sign out failed!');
@@ -609,6 +645,8 @@ function App() {
     );
   };
 
+  const activeNote = notes.find((note) => note.id === activeNoteId) || null;
+
   if (isLoading) {
     return (
       <div className="app">
@@ -623,7 +661,59 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <Header todayDate={getTodayDateFormatted()} />
+        <Header
+          todayDate={getTodayDateFormatted()}
+          user={user}
+          onLoginClick={() => setShowAuthPanel((open) => !open)}
+          onSignOut={handleSignOut}
+        />
+        {showAuthPanel && !user && (
+          <div className="auth-panel">
+            <button className="auth-google-button" type="button" disabled title="Google login coming soon">
+              Google login coming soon
+            </button>
+            <div className="auth-divider">or</div>
+            <div className="auth-panel-title">
+              {authMode === 'sign-in' ? 'Sign in with email' : 'Create your account'}
+            </div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={authEmail}
+              onChange={(event) => setAuthEmail(event.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={authPassword}
+              onChange={(event) => setAuthPassword(event.target.value)}
+            />
+            <button onClick={submitAuthEmail} disabled={!isFirebaseConfigured() || isAuthBusy}>
+              {authMode === 'sign-in' ? 'Sign In' : 'Create Account'}
+            </button>
+            <button
+              className="auth-text-button"
+              onClick={() => {
+                setAuthMessage('');
+                setAuthMode(authMode === 'sign-in' ? 'create' : 'sign-in');
+              }}
+              type="button"
+            >
+              {authMode === 'sign-in'
+                ? "Don't have an account? Create one"
+                : 'Already have an account? Sign in'}
+            </button>
+            <button className="auth-link-button" onClick={handleAnonymousSignIn} disabled={!isFirebaseConfigured() || isAuthBusy}>
+              Continue anonymously
+            </button>
+            {authMessage && <div className="auth-message">{authMessage}</div>}
+            {getGoogleRedirectUri() && (
+              <div className="auth-help">
+                Google redirect URL: <span>{getGoogleRedirectUri()}</span>
+              </div>
+            )}
+          </div>
+        )}
         <Tabs 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 
@@ -645,11 +735,6 @@ function App() {
             setUrlDescription={setUrlDescription}
             onManualUpload={processFiles}
             currentTabInfo={currentTabInfo}
-            groups={groups}
-            selectedGroupId={selectedGroupId}
-            selectedSubgroupId={selectedSubgroupId}
-            setSelectedGroupId={setSelectedGroupId}
-            setSelectedSubgroupId={setSelectedSubgroupId}
           />
         )}
 
@@ -657,19 +742,21 @@ function App() {
           <NotesTab 
             editorRef={editorRef}
             editorTitle={editorTitle}
-            handleNoteChange={handleNoteChange}
+            editorContent={editorContent}
+            noteMode={noteMode}
+            activeNote={activeNote}
+            setEditorTitle={setEditorTitle}
             createNewNote={createNewNote}
+            editActiveNote={editActiveNote}
+            closeNoteView={closeNoteView}
             format={format}
             formatList={formatList}
             handleEditorInput={handleEditorInput}
             handleSaveNote={handleSaveNote}
             handleClearNote={handleClearNote}
             notes={notes}
-            activeNoteId={activeNoteId}
-            selectNote={selectNote}
+            openNote={selectNote}
             deleteNote={deleteNote}
-            selectedGroupId={selectedGroupId}
-            selectedSubgroupId={selectedSubgroupId}
           />
         )}
 
@@ -693,41 +780,17 @@ function App() {
             setHoveredFile={setHoveredFile}
             renderFilePreview={renderFilePreview}
             toggleItemStatus={toggleItemStatus}
-            groups={groups}
             clearAll={() => {
               setFiles([]);
               setNotes([]);
               setTasks([]);
               setActiveNoteId(null);
+              setNoteMode('list');
               setEditorTitle('');
               setEditorContent('');
               if (editorRef.current) editorRef.current.innerHTML = '';
               showNotification('All history cleared!');
             }}
-          />
-        )}
-
-        {activeTab === 'groups' && (
-          <GroupsTab
-            groups={groups}
-            selectedGroupId={selectedGroupId}
-            selectedSubgroupId={selectedSubgroupId}
-            setSelectedGroupId={setSelectedGroupId}
-            setSelectedSubgroupId={setSelectedSubgroupId}
-            onCreateGroup={handleSaveCloudGroup}
-          />
-        )}
-
-        {activeTab === 'account' && (
-          <AccountTab
-            backendMode={getConfiguredBackendMode()}
-            isFirebaseReady={isFirebaseConfigured()}
-            user={user}
-            onGoogleSignIn={handleGoogleSignIn}
-            onEmailSignIn={handleEmailSignIn}
-            onEmailCreate={handleEmailCreate}
-            onAnonymousSignIn={handleAnonymousSignIn}
-            onSignOut={handleSignOut}
           />
         )}
 

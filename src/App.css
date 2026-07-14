@@ -1306,26 +1306,55 @@ body {
   gap: 3px;
 }
 
-/* Account, groups, and save destination */
-.settings-page {
+/* Header auth */
+.header-actions {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.compact-section {
-  padding: 12px;
-}
-
-.group-picker {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  align-items: center;
   gap: 8px;
 }
 
-.group-picker select,
-.auth-stack input,
-.inline-form-row input {
+.login-button,
+.profile-button,
+.auth-panel button {
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-button {
+  padding: 6px 10px;
+}
+
+.profile-button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.profile-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-panel {
+  background: #ffffff;
+  border: 1px solid #d1fae5;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.auth-panel input {
   width: 100%;
   border: 1px solid #d1fae5;
   background: #f8fafc;
@@ -1336,121 +1365,98 @@ body {
   outline: none;
 }
 
-.group-picker select:focus,
-.auth-stack input:focus,
-.inline-form-row input:focus {
+.auth-panel input:focus {
   border-color: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
 }
 
-.status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.status-grid > div,
-.account-card,
-.group-row {
-  background: #f8fafc;
-  border: 1px solid #d1fae5;
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.status-label {
-  display: block;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-}
-
-.account-card {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-}
-
-.account-card p,
-.muted-text {
-  color: #64748b;
-  font-size: 12px;
-  margin-top: 3px;
-}
-
-.account-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-}
-
-.auth-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.two-button-row,
-.inline-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.settings-page button,
-.auth-stack button,
-.account-card button,
-.inline-form-row button {
-  border: none;
-  border-radius: 8px;
+.auth-panel button {
   padding: 9px 10px;
-  background: #10b981;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
-.settings-page button:disabled,
-.auth-stack button:disabled,
-.inline-form-row button:disabled {
+.auth-panel button:disabled {
   background: #94a3b8;
   cursor: not-allowed;
 }
 
-.group-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.auth-divider {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
 }
 
-.group-row {
+.auth-panel-title {
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.auth-link-button {
+  background: #e6f7ee !important;
+  color: #059669 !important;
+}
+
+.auth-text-button {
+  background: transparent !important;
+  color: #059669 !important;
+  font-size: 11px !important;
+  padding: 3px 4px !important;
+  text-align: left;
+}
+
+.auth-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 8px;
+}
+
+.auth-help {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.auth-help span {
+  color: #334155;
+  font-weight: 700;
+}
+
+.notes-list-header,
+.note-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  margin-bottom: 12px;
 }
 
-.group-row span,
-.group-label,
-.selected-group-hint {
-  color: #059669;
-  font-size: 11px;
-  font-weight: 700;
+.note-detail-view {
+  background: #ffffff;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  border-radius: 16px;
+  padding: 16px;
 }
 
-.group-label {
-  margin-top: 6px;
+.note-detail-view h3 {
+  color: #1e293b;
+  font-size: 16px;
+  margin-bottom: 12px;
 }
 
-.selected-group-hint {
-  background: #f0fdf4;
-  border: 1px solid #d1fae5;
-  border-radius: 8px;
-  margin: 8px 0;
-  padding: 7px 9px;
+.note-detail-content {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 180px;
+  padding: 12px;
 }

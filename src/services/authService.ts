@@ -13,6 +13,21 @@ import {
 import type { QuickDropUser } from '../types';
 import { getFirebaseServices } from './firebase';
 
+type ChromeIdentityApi = {
+  identity?: {
+    getRedirectURL: () => string;
+    launchWebAuthFlow: (
+      options: { url: string; interactive: boolean },
+      callback: (responseUrl?: string) => void
+    ) => void;
+  };
+  runtime?: {
+    lastError?: { message?: string };
+  };
+};
+
+declare const chrome: ChromeIdentityApi | undefined;
+
 export const mapFirebaseUser = (user: User): QuickDropUser => ({
   id: user.uid,
   email: user.email,
@@ -35,11 +50,107 @@ export const onAuthUserChanged = (
   });
 };
 
+export const getGoogleRedirectUri = (): string | null => {
+  if (typeof chrome !== 'undefined' && chrome.identity) {
+    return chrome.identity.getRedirectURL();
+  }
+
+  return null;
+};
+
 export const signInWithGoogle = async (): Promise<QuickDropUser> => {
+  if (typeof chrome !== 'undefined' && chrome.identity) {
+    return signInWithGoogleInExtension();
+  }
+
   const { auth } = getFirebaseServices();
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   return mapFirebaseUser(result.user);
+};
+
+const signInWithGoogleInExtension = async (): Promise<QuickDropUser> => {
+  const clientId = import.meta.env.VITE_FIREBASE_WEB_CLIENT_ID;
+  if (!clientId || typeof chrome === 'undefined' || !chrome.identity) {
+    throw new Error('Google web client ID is missing.');
+  }
+
+  const redirectUri = chrome.identity.getRedirectURL();
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: 'token',
+    redirect_uri: redirectUri,
+    scope: 'openid email profile',
+    prompt: 'select_account',
+  });
+
+  const responseUrl = await new Promise<string>((resolve, reject) => {
+    chrome.identity?.launchWebAuthFlow(
+      { url: `https://accounts.google.com/o/oauth2/v2/auth?${params}`, interactive: true },
+      (url) => {
+        const error = chrome.runtime?.lastError?.message;
+        if (error || !url) {
+          reject(new Error(error || 'Google sign in was cancelled.'));
+          return;
+        }
+        resolve(url);
+      }
+    );
+  });
+
+  const fragment = new URL(responseUrl).hash.slice(1);
+  const accessToken = new URLSearchParams(fragment).get('access_token');
+  if (!accessToken) {
+    throw new Error('Google did not return an access token.');
+  }
+
+  const { auth } = getFirebaseServices();
+  const credential = GoogleAuthProvider.credential(null, accessToken);
+  const result = await signInWithCredential(auth, credential);
+  return mapFirebaseUser(result.user);
+};
+
+export const getAuthErrorMessage = (error: unknown): string => {
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: string }).code)
+    : '';
+  const message = error instanceof Error ? error.message : '';
+
+  if (message.includes('redirect_uri_mismatch')) {
+    return 'Google login redirect is not allowed yet. Add the Chrome extension redirect URL to your Google OAuth client.';
+  }
+
+  if (message.includes('Google web client ID is missing')) {
+    return 'Google login needs VITE_FIREBASE_WEB_CLIENT_ID in .env, then rebuild the extension.';
+  }
+
+  if (message.includes('Authorization page could not be loaded')) {
+    return 'Google login is blocked by OAuth setup. Check the Chrome extension redirect URL in Google Cloud.';
+  }
+
+  switch (code) {
+    case 'auth/invalid-email':
+      return 'Enter a valid email address.';
+    case 'auth/user-not-found':
+    case 'auth/invalid-credential':
+      return 'No matching account was found, or the password is incorrect.';
+    case 'auth/wrong-password':
+      return 'The password is incorrect.';
+    case 'auth/email-already-in-use':
+      return 'This email already has an account. Sign in instead.';
+    case 'auth/weak-password':
+      return 'Use a stronger password with at least 6 characters.';
+    case 'auth/operation-not-allowed':
+      return 'This sign-in method is disabled in Firebase Auth.';
+    case 'auth/network-request-failed':
+      return 'Network error while contacting Firebase. Check your connection.';
+    case 'auth/popup-closed-by-user':
+      return 'Google login was closed before it finished.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized in Firebase Authentication settings.';
+    default:
+      return message || 'Authentication failed. Please try again.';
+  }
 };
 
 export const signInWithGoogleIdToken = async (idToken: string): Promise<QuickDropUser> => {

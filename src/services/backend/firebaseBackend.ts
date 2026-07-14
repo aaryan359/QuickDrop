@@ -1,7 +1,7 @@
 import type { FileItem, NoteItem, QuickDropItem, Task } from '../../types';
 import { getCurrentUser } from '../authService';
 import { isFirebaseConfigured } from '../firebase';
-import { createItem, deleteItem, getItems } from '../itemService';
+import { createItem, deleteItem, getItems, updateItem } from '../itemService';
 import { uploadFile } from '../storageService';
 import type { AppData, BackendClient } from './types';
 
@@ -96,6 +96,15 @@ export const createCloudNote = async (noteItem: NoteItem): Promise<NoteItem> => 
     reminderAt: noteItem.reminderDate,
   });
   return { ...noteItem, id: saved.id };
+};
+
+export const updateCloudNote = async (noteItem: NoteItem): Promise<void> => {
+  await updateItem(noteItem.id, {
+    title: noteItem.title,
+    content: noteItem.content,
+    isArchived: noteItem.status === 'archived',
+    reminderAt: noteItem.reminderDate,
+  });
 };
 
 export const firebaseBackend: BackendClient = {
