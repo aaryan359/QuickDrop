@@ -28,6 +28,8 @@ const mapToFileItem = (item: QuickDropItem): FileItem => ({
   timestamp: new Date(item.createdAt).getTime(),
   status: item.isArchived ? 'archived' : 'review',
   reminderDate: item.reminderAt,
+  groupId: item.groupId,
+  subgroupId: item.subgroupId,
 });
 
 const mapToNoteItem = (item: QuickDropItem): NoteItem => ({
@@ -37,6 +39,8 @@ const mapToNoteItem = (item: QuickDropItem): NoteItem => ({
   timestamp: new Date(item.createdAt).getTime(),
   status: item.isArchived ? 'archived' : 'review',
   reminderDate: item.reminderAt,
+  groupId: item.groupId,
+  subgroupId: item.subgroupId,
 });
 
 export const isFirebaseBackendReady = (): boolean => {
@@ -54,6 +58,8 @@ export const createCloudFile = async (
     title: fileItem.name,
     fileUrl: upload.fileUrl,
     content: upload.provider === 'local' ? fileContent : undefined,
+    groupId: fileItem.groupId,
+    subgroupId: fileItem.subgroupId,
     tags: [],
     isStarred: false,
     isArchived: false,
@@ -67,6 +73,8 @@ export const createCloudUrl = async (fileItem: FileItem): Promise<FileItem> => {
     title: fileItem.name,
     url: fileItem.url,
     note: fileItem.description,
+    groupId: fileItem.groupId,
+    subgroupId: fileItem.subgroupId,
     tags: [],
     isStarred: false,
     isArchived: fileItem.status === 'archived',
@@ -80,6 +88,8 @@ export const createCloudNote = async (noteItem: NoteItem): Promise<NoteItem> => 
     type: 'note',
     title: noteItem.title,
     content: noteItem.content,
+    groupId: noteItem.groupId,
+    subgroupId: noteItem.subgroupId,
     tags: [],
     isStarred: false,
     isArchived: noteItem.status === 'archived',

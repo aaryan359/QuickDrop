@@ -1305,3 +1305,152 @@ body {
   align-items: center;
   gap: 3px;
 }
+
+/* Account, groups, and save destination */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.compact-section {
+  padding: 12px;
+}
+
+.group-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.group-picker select,
+.auth-stack input,
+.inline-form-row input {
+  width: 100%;
+  border: 1px solid #d1fae5;
+  background: #f8fafc;
+  color: #1e293b;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+.group-picker select:focus,
+.auth-stack input:focus,
+.inline-form-row input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.status-grid > div,
+.account-card,
+.group-row {
+  background: #f8fafc;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.status-label {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.account-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-card p,
+.muted-text {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.account-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.auth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.two-button-row,
+.inline-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-page button,
+.auth-stack button,
+.account-card button,
+.inline-form-row button {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #10b981;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-page button:disabled,
+.auth-stack button:disabled,
+.inline-form-row button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-row span,
+.group-label,
+.selected-group-hint {
+  color: #059669;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.group-label {
+  margin-top: 6px;
+}
+
+.selected-group-hint {
+  background: #f0fdf4;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding: 7px 9px;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { FileItem, NoteItem, Task } from '../types';
+import type { FileItem, NoteItem, QuickDropGroup, Task } from '../types';
 import { formatReminder } from '../utils/helpers';
 
 interface FeedTabProps {
@@ -22,6 +22,7 @@ interface FeedTabProps {
   renderFilePreview: (file: FileItem) => React.ReactNode;
   clearAll: () => void;
   toggleItemStatus: (id: string, type: string) => void;
+  groups: QuickDropGroup[];
 }
 
 export const FeedTab: React.FC<FeedTabProps> = ({
@@ -43,9 +44,11 @@ export const FeedTab: React.FC<FeedTabProps> = ({
   setHoveredFile,
   renderFilePreview,
   clearAll,
-  toggleItemStatus
+  toggleItemStatus,
+  groups
 }) => {
   const unifiedItems = getUnifiedItems();
+  const groupNameById = new Map(groups.map((group) => [group.id, group.name]));
 
   return (
     <div className="files-list">
@@ -164,6 +167,12 @@ export const FeedTab: React.FC<FeedTabProps> = ({
                           ⏰ {formatReminder(item.reminderDate)}
                         </span>
                       )}
+                    </div>
+                  )}
+                  {(item.raw.groupId || item.raw.subgroupId) && (
+                    <div className="group-label">
+                      {item.raw.groupId && groupNameById.get(item.raw.groupId)}
+                      {item.raw.subgroupId && ` / ${groupNameById.get(item.raw.subgroupId)}`}
                     </div>
                   )}
                 </div>

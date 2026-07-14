@@ -15,6 +15,8 @@ interface NotesTabProps {
   activeNoteId: string | null;
   selectNote: (note: NoteItem) => void;
   deleteNote: (id: string) => void;
+  selectedGroupId: string;
+  selectedSubgroupId: string;
 }
 
 export const NotesTab: React.FC<NotesTabProps> = ({
@@ -30,7 +32,9 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   notes,
   activeNoteId,
   selectNote,
-  deleteNote
+  deleteNote,
+  selectedGroupId,
+  selectedSubgroupId
 }) => {
   const currentContent = notes.find(n => n.id === activeNoteId)?.content || '';
 
@@ -53,6 +57,11 @@ export const NotesTab: React.FC<NotesTabProps> = ({
             New
           </button>
         </div>
+        {(selectedGroupId || selectedSubgroupId) && (
+          <div className="selected-group-hint">
+            Saving notes into selected group{selectedSubgroupId ? ' / subgroup' : ''}
+          </div>
+        )}
         
         <div className="note-toolbar">
           <div className="toolbar-left">

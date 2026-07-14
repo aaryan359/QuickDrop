@@ -15,14 +15,21 @@ export class DataService {
   }
 
   // Create/Add a File
-  static async addFile(file: File, fileContent: string): Promise<FileItem> {
+  static async addFile(
+    file: File,
+    fileContent: string,
+    groupId?: string,
+    subgroupId?: string
+  ): Promise<FileItem> {
     const newItem: FileItem = {
       id: Date.now().toString() + Math.random(),
       name: file.name,
       type: getFileType(file.name),
       content: fileContent,
       size: formatFileSize(file.size),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      groupId,
+      subgroupId
     };
 
     const backend = getBackendClient();
@@ -38,7 +45,9 @@ export class DataService {
     url: string, 
     description: string,
     status?: 'review' | 'done' | 'archived',
-    reminderDate?: string
+    reminderDate?: string,
+    groupId?: string,
+    subgroupId?: string
   ): Promise<FileItem> {
     const newItem: FileItem = {
       id: Date.now().toString() + Math.random(),
@@ -48,7 +57,9 @@ export class DataService {
       description: description.trim() || 'Text Snippet',
       timestamp: Date.now(),
       status: status || 'review',
-      reminderDate
+      reminderDate,
+      groupId,
+      subgroupId
     };
 
     const backend = getBackendClient();
@@ -65,12 +76,19 @@ export class DataService {
   }
 
   // Create/Add a Note
-  static async addNoteItem(title: string, content: string): Promise<NoteItem> {
+  static async addNoteItem(
+    title: string,
+    content: string,
+    groupId?: string,
+    subgroupId?: string
+  ): Promise<NoteItem> {
     const newItem: NoteItem = {
       id: Date.now().toString() + Math.random(),
       title: title.trim() || 'Untitled Note',
       content: content,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      groupId,
+      subgroupId
     };
 
     const backend = getBackendClient();

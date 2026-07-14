@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
-import type { FileItem, Task, NoteItem } from './types';
+import type { FileItem, Task, NoteItem, QuickDropGroup, QuickDropUser } from './types';
 import { DataService } from './services/dataService';
+import { getConfiguredBackendMode } from './services/backend/backendClient';
+import { isFirebaseConfigured } from './services/firebase';
+import {
+  createAccountWithEmail,
+  onAuthUserChanged,
+  signInAnonymously,
+  signInWithEmail,
+  signInWithGoogle,
+  signOut,
+} from './services/authService';
+import { createGroup, getUserGroups } from './services/groupService';
 import { 
   isValidUrl, 
   getTodayDateFormatted, 
@@ -18,14 +29,18 @@ import { DropTab } from './components/DropTab';
 import { NotesTab } from './components/NotesTab';
 import { FeedTab } from './components/FeedTab';
 import { TasksTab } from './components/TasksTab';
+import { AccountTab } from './components/AccountTab';
+import { GroupsTab } from './components/GroupsTab';
 
 declare const chrome: any;
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks'>('drop');
+  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'files' | 'tasks' | 'groups' | 'account'>('drop');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
+  const [groups, setGroups] = useState<QuickDropGroup[]>([]);
+  const [user, setUser] = useState<QuickDropUser | null>(null);
 
   // Notes states
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -42,6 +57,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredFile, setHoveredFile] = useState<string | null>(null);
   const [fileListFilter, setFileListFilter] = useState<'all' | 'files' | 'links' | 'notes'>('all');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [selectedSubgroupId, setSelectedSubgroupId] = useState('');
 
   const [currentTabInfo, setCurrentTabInfo] = useState<{ title: string; url: string; available: boolean }>({
     title: '',
@@ -68,6 +85,30 @@ function App() {
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+
+    return onAuthUserChanged((authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        loadCloudData();
+      }
+    });
+  }, []);
+
+  const loadCloudData = async () => {
+    try {
+      const [{ files: loadedFiles, tasks: loadedTasks, notes: loadedNotes }, loadedGroups] =
+        await Promise.all([DataService.loadAllData(), getUserGroups()]);
+      setFiles(loadedFiles);
+      setTasks(loadedTasks);
+      setNotes(loadedNotes);
+      setGroups(loadedGroups);
+    } catch (error) {
+      console.error('Failed to load cloud data:', error);
+    }
+  };
 
   // Load data from storage on component mount
   useEffect(() => {
@@ -178,7 +219,12 @@ function App() {
     const titleToSave = editorTitle.trim() || 'Untitled Note';
 
     try {
-      const newNote = await DataService.addNoteItem(titleToSave, editorContent);
+      const newNote = await DataService.addNoteItem(
+        titleToSave,
+        editorContent,
+        selectedGroupId || undefined,
+        selectedSubgroupId || undefined
+      );
       setNotes(prev => [newNote, ...prev]);
       setActiveNoteId(newNote.id);
       showNotification('Note saved successfully!');
@@ -260,7 +306,12 @@ function App() {
       reader.onload = async (e) => {
         const content = e.target?.result as string;
         try {
-          const fileItem = await DataService.addFile(file, content);
+          const fileItem = await DataService.addFile(
+            file,
+            content,
+            selectedGroupId || undefined,
+            selectedSubgroupId || undefined
+          );
           setFiles(prev => [fileItem, ...prev]);
           showNotification('File added successfully!');
         } catch (err) {
@@ -280,7 +331,14 @@ function App() {
   ) => {
     if (url.trim()) {
       try {
-        const newUrl = await DataService.addUrlItem(url, description, status, reminderDate);
+        const newUrl = await DataService.addUrlItem(
+          url,
+          description,
+          status,
+          reminderDate,
+          selectedGroupId || undefined,
+          selectedSubgroupId || undefined
+        );
         setFiles(prev => [newUrl, ...prev]);
         showNotification('Snippet saved!');
       } catch (err) {
@@ -386,6 +444,78 @@ function App() {
     if (note) {
       selectNote(note);
       setActiveTab('notes');
+    }
+  };
+
+  const handleSaveCloudGroup = async (name: string, parentGroupId?: string) => {
+    try {
+      const createdGroup = user
+        ? await createGroup({ name, parentGroupId })
+        : {
+            id: Date.now().toString() + Math.random(),
+            userId: 'local',
+            name,
+            parentGroupId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+      setGroups((prev) => [createdGroup, ...prev]);
+      showNotification(parentGroupId ? 'Subgroup created!' : 'Group created!');
+    } catch (error) {
+      showNotification('Failed to create group!');
+      console.error(error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      showNotification('Signed in with Google!');
+    } catch (error) {
+      showNotification('Google sign in failed!');
+      console.error(error);
+    }
+  };
+
+  const handleEmailSignIn = async (email: string, password: string) => {
+    try {
+      await signInWithEmail(email, password);
+      showNotification('Signed in!');
+    } catch (error) {
+      showNotification('Email sign in failed!');
+      console.error(error);
+    }
+  };
+
+  const handleEmailCreate = async (email: string, password: string) => {
+    try {
+      await createAccountWithEmail(email, password);
+      showNotification('Account created!');
+    } catch (error) {
+      showNotification('Account creation failed!');
+      console.error(error);
+    }
+  };
+
+  const handleAnonymousSignIn = async () => {
+    try {
+      await signInAnonymously();
+      showNotification('Anonymous session started!');
+    } catch (error) {
+      showNotification('Anonymous sign in failed!');
+      console.error(error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setUser(null);
+      showNotification('Signed out!');
+    } catch (error) {
+      showNotification('Sign out failed!');
+      console.error(error);
     }
   };
 
@@ -515,6 +645,11 @@ function App() {
             setUrlDescription={setUrlDescription}
             onManualUpload={processFiles}
             currentTabInfo={currentTabInfo}
+            groups={groups}
+            selectedGroupId={selectedGroupId}
+            selectedSubgroupId={selectedSubgroupId}
+            setSelectedGroupId={setSelectedGroupId}
+            setSelectedSubgroupId={setSelectedSubgroupId}
           />
         )}
 
@@ -533,6 +668,8 @@ function App() {
             activeNoteId={activeNoteId}
             selectNote={selectNote}
             deleteNote={deleteNote}
+            selectedGroupId={selectedGroupId}
+            selectedSubgroupId={selectedSubgroupId}
           />
         )}
 
@@ -556,6 +693,7 @@ function App() {
             setHoveredFile={setHoveredFile}
             renderFilePreview={renderFilePreview}
             toggleItemStatus={toggleItemStatus}
+            groups={groups}
             clearAll={() => {
               setFiles([]);
               setNotes([]);
@@ -566,6 +704,30 @@ function App() {
               if (editorRef.current) editorRef.current.innerHTML = '';
               showNotification('All history cleared!');
             }}
+          />
+        )}
+
+        {activeTab === 'groups' && (
+          <GroupsTab
+            groups={groups}
+            selectedGroupId={selectedGroupId}
+            selectedSubgroupId={selectedSubgroupId}
+            setSelectedGroupId={setSelectedGroupId}
+            setSelectedSubgroupId={setSelectedSubgroupId}
+            onCreateGroup={handleSaveCloudGroup}
+          />
+        )}
+
+        {activeTab === 'account' && (
+          <AccountTab
+            backendMode={getConfiguredBackendMode()}
+            isFirebaseReady={isFirebaseConfigured()}
+            user={user}
+            onGoogleSignIn={handleGoogleSignIn}
+            onEmailSignIn={handleEmailSignIn}
+            onEmailCreate={handleEmailCreate}
+            onAnonymousSignIn={handleAnonymousSignIn}
+            onSignOut={handleSignOut}
           />
         )}
 
