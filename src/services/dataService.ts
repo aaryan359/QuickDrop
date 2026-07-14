@@ -1,51 +1,21 @@
 import type { FileItem, Task, NoteItem } from '../types';
-import { saveData, loadData } from './storage';
-
-// Set this to your backend URL when ready, or configure Firebase here.
-const API_BASE_URL = '';
+import { getFileType, formatFileSize } from '../utils/helpers';
+import { getBackendClient } from './backend/backendClient';
+import { createCloudFile, createCloudNote, createCloudUrl } from './backend/firebaseBackend';
 
 export class DataService {
   // Load all data
   static async loadAllData(): Promise<{ files: FileItem[], tasks: Task[], notes: NoteItem[] }> {
-    if (API_BASE_URL) {
-      const res = await fetch(`${API_BASE_URL}/all`);
-      return res.json();
-    }
-    return loadData();
+    return getBackendClient().loadAllData();
   }
 
   // Sync / Save all data (for local storage fallback or bulk sync)
   static async syncData(files: FileItem[], tasks: Task[], notes: NoteItem[]): Promise<void> {
-    if (API_BASE_URL) {
-      await fetch(`${API_BASE_URL}/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files, tasks, notes })
-      });
-      return;
-    }
-    return saveData(files, tasks, notes);
+    return getBackendClient().syncData({ files, tasks, notes });
   }
 
   // Create/Add a File
   static async addFile(file: File, fileContent: string): Promise<FileItem> {
-    const getFileType = (name: string): 'file' | 'image' | 'pdf' | 'text' | 'url' => {
-      const ext = name.split('.').pop()?.toLowerCase();
-      if (!ext) return 'file';
-      if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) return 'image';
-      if (ext === 'pdf') return 'pdf';
-      if (['txt', 'md', 'json', 'js', 'html', 'css'].includes(ext)) return 'text';
-      return 'file';
-    };
-
-    const formatFileSize = (bytes: number): string => {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
-
     const newItem: FileItem = {
       id: Date.now().toString() + Math.random(),
       name: file.name,
@@ -55,13 +25,9 @@ export class DataService {
       timestamp: Date.now()
     };
 
-    if (API_BASE_URL) {
-      const res = await fetch(`${API_BASE_URL}/files`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      });
-      return res.json();
+    const backend = getBackendClient();
+    if (backend.mode === 'firebase') {
+      return createCloudFile(file, fileContent, newItem);
     }
 
     return newItem;
@@ -85,13 +51,9 @@ export class DataService {
       reminderDate
     };
 
-    if (API_BASE_URL) {
-      const res = await fetch(`${API_BASE_URL}/snippets`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      });
-      return res.json();
+    const backend = getBackendClient();
+    if (backend.mode === 'firebase') {
+      return createCloudUrl(newItem);
     }
 
     return newItem;
@@ -99,11 +61,7 @@ export class DataService {
 
   // Delete a File or URL item
   static async deleteFile(fileId: string): Promise<void> {
-    if (API_BASE_URL) {
-      await fetch(`${API_BASE_URL}/files/${fileId}`, {
-        method: 'DELETE'
-      });
-    }
+    await getBackendClient().deleteItem(fileId);
   }
 
   // Create/Add a Note
@@ -115,13 +73,9 @@ export class DataService {
       timestamp: Date.now()
     };
 
-    if (API_BASE_URL) {
-      const res = await fetch(`${API_BASE_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      });
-      return res.json();
+    const backend = getBackendClient();
+    if (backend.mode === 'firebase') {
+      return createCloudNote(newItem);
     }
 
     return newItem;
@@ -129,11 +83,7 @@ export class DataService {
 
   // Delete a Note
   static async deleteNote(noteId: string): Promise<void> {
-    if (API_BASE_URL) {
-      await fetch(`${API_BASE_URL}/notes/${noteId}`, {
-        method: 'DELETE'
-      });
-    }
+    await getBackendClient().deleteItem(noteId);
   }
 
   // Create/Add a Task
@@ -145,35 +95,17 @@ export class DataService {
       date: new Date()
     };
 
-    if (API_BASE_URL) {
-      const res = await fetch(`${API_BASE_URL}/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newItem)
-      });
-      return res.json();
-    }
-
     return newItem;
   }
 
   // Toggle a Task's status
   static async toggleTask(taskId: string, completed: boolean): Promise<void> {
-    if (API_BASE_URL) {
-      await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed })
-      });
-    }
+    void taskId;
+    void completed;
   }
 
   // Delete a Task
   static async deleteTask(taskId: string): Promise<void> {
-    if (API_BASE_URL) {
-      await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-        method: 'DELETE'
-      });
-    }
+    void taskId;
   }
 }

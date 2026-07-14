@@ -13,7 +13,11 @@ dist-ssr
 *.local
 
 
-
+.env
+*.firebase-adminsdk-*.json
+*firebase-adminsdk*.json
+serviceAccount*.json
+quickdrop-adca5-firebase-adminsdk-fbsvc-f84536671c.json
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

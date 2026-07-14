@@ -20,7 +20,9 @@
   "permissions": [
     "activeTab",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "identity",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"

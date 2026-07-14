@@ -2,8 +2,9 @@ import type { FileItem } from '../types';
 
 export const getFileType = (fileName: string): FileItem['type'] => {
   const extension = fileName.split('.').pop()?.toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image';
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) return 'image';
   if (extension === 'pdf') return 'pdf';
+  if (['txt', 'md', 'json', 'js', 'html', 'css'].includes(extension || '')) return 'text';
   return 'file';
 };
 
@@ -108,4 +109,3 @@ export const formatReminder = (dateStr?: string): string => {
     return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} at ${timeStr}`;
   }
 };
-

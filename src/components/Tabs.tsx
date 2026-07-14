@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface TabsProps {
-  activeTab: 'drop' | 'notes' | 'files' | 'tasks';
-  setActiveTab: (tab: 'drop' | 'notes' | 'files' | 'tasks') => void;
+  activeTab: 'drop' | 'notes' | 'files' | 'tasks' | 'groups' | 'account';
+  setActiveTab: (tab: 'drop' | 'notes' | 'files' | 'tasks' | 'groups' | 'account') => void;
   feedCount: number;
 }
 
@@ -32,6 +32,18 @@ export const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab, feedCount }
         onClick={() => setActiveTab('tasks')}
       >
         Tasks
+      </button>
+      <button 
+        className={`tab ${activeTab === 'groups' ? 'active' : ''}`}
+        onClick={() => setActiveTab('groups')}
+      >
+        Groups
+      </button>
+      <button 
+        className={`tab ${activeTab === 'account' ? 'active' : ''}`}
+        onClick={() => setActiveTab('account')}
+      >
+        Account
       </button>
     </div>
   );
