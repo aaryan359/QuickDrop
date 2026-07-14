@@ -1,5 +1,10 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import {
+  getAuth,
+  indexedDBLocalPersistence,
+  setPersistence,
+  type Auth,
+} from 'firebase/auth/web-extension';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getMessaging, isSupported, type Messaging } from 'firebase/messaging';
 
@@ -21,6 +26,7 @@ const firebaseConfig = {
 
 let services: FirebaseServices | null = null;
 let messagingPromise: Promise<Messaging | null> | null = null;
+let authPersistenceReady: Promise<void> | null = null;
 
 export const isFirebaseConfigured = (): boolean => {
   return Boolean(
@@ -38,14 +44,20 @@ export const getFirebaseServices = (): FirebaseServices => {
 
   if (!services) {
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    authPersistenceReady = setPersistence(auth, indexedDBLocalPersistence);
     services = {
       app,
-      auth: getAuth(app),
+      auth,
       db: getFirestore(app),
     };
   }
 
   return services;
+};
+
+export const waitForAuthPersistence = async (): Promise<void> => {
+  await authPersistenceReady;
 };
 
 export const getFirebaseMessaging = async (): Promise<Messaging | null> => {

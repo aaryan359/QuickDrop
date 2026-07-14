@@ -16,6 +16,12 @@ import { getFirebaseServices } from './firebase';
 type CreateItemInput = Omit<QuickDropItem, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
 type UpdateItemInput = Partial<Omit<QuickDropItem, 'id' | 'userId' | 'createdAt'>>;
 
+const removeUndefined = <T extends Record<string, unknown>>(value: T): T => {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, fieldValue]) => fieldValue !== undefined)
+  ) as T;
+};
+
 const getUserId = (): string => {
   const user = getCurrentUser();
   if (!user) {
@@ -57,12 +63,12 @@ export const getItems = async (): Promise<QuickDropItem[]> => {
 export const createItem = async (input: CreateItemInput): Promise<QuickDropItem> => {
   const userId = getUserId();
   const now = new Date().toISOString();
-  const payload = {
+  const payload = removeUndefined({
     ...input,
     userId,
     createdAt: now,
     updatedAt: now,
-  };
+  });
   const itemDoc = await addDoc(itemsCollection(userId), payload);
   return { ...payload, id: itemDoc.id };
 };
@@ -73,10 +79,10 @@ export const updateItem = async (
 ): Promise<void> => {
   const userId = getUserId();
   const { db } = getFirebaseServices();
-  await updateDoc(doc(db, 'users', userId, 'items', itemId), {
+  await updateDoc(doc(db, 'users', userId, 'items', itemId), removeUndefined({
     ...input,
     updatedAt: new Date().toISOString(),
-  });
+  }));
 };
 
 export const archiveItem = async (itemId: string): Promise<void> => {

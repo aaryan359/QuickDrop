@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import type { FileItem, Task, NoteItem, QuickDropUser } from './types';
 import { DataService } from './services/dataService';
+import { scheduleReminderNotifications } from './services/reminderService';
 import { isFirebaseConfigured } from './services/firebase';
 import {
   createAccountWithEmail,
@@ -88,16 +89,37 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!isFirebaseConfigured()) return;
+    if (!isFirebaseConfigured()) {
+      setIsLoading(false);
+      return;
+    }
 
     return onAuthUserChanged((authUser) => {
-      setUser(authUser);
-      if (authUser) {
-        setShowAuthPanel(false);
-        loadCloudData();
-      }
+      const syncAuthState = async () => {
+        setUser(authUser);
+        if (authUser) {
+          setShowAuthPanel(false);
+          await loadCloudData();
+        } else {
+          clearUserData();
+        }
+        setIsLoading(false);
+      };
+
+      void syncAuthState();
     });
   }, []);
+
+  const clearUserData = () => {
+    setFiles([]);
+    setTasks([]);
+    setNotes([]);
+    setActiveNoteId(null);
+    setNoteMode('list');
+    setEditorTitle('');
+    setEditorContent('');
+    if (editorRef.current) editorRef.current.innerHTML = '';
+  };
 
   const loadCloudData = async () => {
     try {
@@ -109,24 +131,6 @@ function App() {
       console.error('Failed to load cloud data:', error);
     }
   };
-
-  // Load data from storage on component mount
-  useEffect(() => {
-    const loadDataOnMount = async () => {
-      try {
-        const { files: loadedFiles, tasks: loadedTasks, notes: loadedNotes } = await DataService.loadAllData();
-        setFiles(loadedFiles);
-        setTasks(loadedTasks);
-        setNotes(loadedNotes);
-      } catch (error) {
-        console.error('Failed to load data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadDataOnMount();
-  }, []);
 
   // Trigger file selection if opened via triggerUpload query param (handles the popup file dialog workaround)
   useEffect(() => {
@@ -143,10 +147,11 @@ function App() {
 
   // Save data to storage whenever files, tasks, or notes change
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && user) {
       DataService.syncData(files, tasks, notes);
+      scheduleReminderNotifications(files, notes);
     }
-  }, [files, tasks, notes, isLoading]);
+  }, [files, tasks, notes, isLoading, user]);
 
   // Sync editor content editable DOM when the note editor opens or changes.
   useEffect(() => {
@@ -488,7 +493,6 @@ function App() {
       const message = getAuthErrorMessage(error);
       setAuthMessage(message);
       showNotification(message);
-      console.error(error);
     } finally {
       setIsAuthBusy(false);
     }
@@ -505,7 +509,6 @@ function App() {
       const message = getAuthErrorMessage(error);
       setAuthMessage(message);
       showNotification(message);
-      console.error(error);
     } finally {
       setIsAuthBusy(false);
     }
@@ -537,7 +540,6 @@ function App() {
       const message = getAuthErrorMessage(error);
       setAuthMessage(message);
       showNotification(message);
-      console.error(error);
     } finally {
       setIsAuthBusy(false);
     }
@@ -546,12 +548,12 @@ function App() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      clearUserData();
       setUser(null);
       setShowAuthPanel(false);
       showNotification('Signed out!');
     } catch (error) {
       showNotification('Sign out failed!');
-      console.error(error);
     }
   };
 
@@ -658,6 +660,79 @@ function App() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="app">
+        <div className="header">
+          <Header
+            todayDate={getTodayDateFormatted()}
+            user={user}
+            onLoginClick={() => setShowAuthPanel((open) => !open)}
+            onSignOut={handleSignOut}
+          />
+        </div>
+
+        <div className="content">
+          <div className="login-required">
+            <h2>Sign in to use QuickDrop</h2>
+            <p>Your links, notes, files, reminders, and history are saved to your Firebase account.</p>
+            <button className="login-required-button" onClick={() => setShowAuthPanel(true)}>
+              Login
+            </button>
+          </div>
+
+          {showAuthPanel && (
+            <div className="auth-panel">
+              <button className="auth-google-button" type="button" disabled title="Google login coming soon">
+                Google login coming soon
+              </button>
+              <div className="auth-divider">or</div>
+              <div className="auth-panel-title">
+                {authMode === 'sign-in' ? 'Sign in with email' : 'Create your account'}
+              </div>
+              <input
+                type="email"
+                placeholder="Email"
+                value={authEmail}
+                onChange={(event) => setAuthEmail(event.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={authPassword}
+                onChange={(event) => setAuthPassword(event.target.value)}
+              />
+              <button onClick={submitAuthEmail} disabled={!isFirebaseConfigured() || isAuthBusy}>
+                {authMode === 'sign-in' ? 'Sign In' : 'Create Account'}
+              </button>
+              <button
+                className="auth-text-button"
+                onClick={() => {
+                  setAuthMessage('');
+                  setAuthMode(authMode === 'sign-in' ? 'create' : 'sign-in');
+                }}
+                type="button"
+              >
+                {authMode === 'sign-in'
+                  ? "Don't have an account? Create one"
+                  : 'Already have an account? Sign in'}
+              </button>
+              <button className="auth-link-button" onClick={handleAnonymousSignIn} disabled={!isFirebaseConfigured() || isAuthBusy}>
+                Continue anonymously
+              </button>
+              {authMessage && <div className="auth-message">{authMessage}</div>}
+              {getGoogleRedirectUri() && (
+                <div className="auth-help">
+                  Google redirect URL: <span>{getGoogleRedirectUri()}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <div className="header">
@@ -667,53 +742,6 @@ function App() {
           onLoginClick={() => setShowAuthPanel((open) => !open)}
           onSignOut={handleSignOut}
         />
-        {showAuthPanel && !user && (
-          <div className="auth-panel">
-            <button className="auth-google-button" type="button" disabled title="Google login coming soon">
-              Google login coming soon
-            </button>
-            <div className="auth-divider">or</div>
-            <div className="auth-panel-title">
-              {authMode === 'sign-in' ? 'Sign in with email' : 'Create your account'}
-            </div>
-            <input
-              type="email"
-              placeholder="Email"
-              value={authEmail}
-              onChange={(event) => setAuthEmail(event.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={authPassword}
-              onChange={(event) => setAuthPassword(event.target.value)}
-            />
-            <button onClick={submitAuthEmail} disabled={!isFirebaseConfigured() || isAuthBusy}>
-              {authMode === 'sign-in' ? 'Sign In' : 'Create Account'}
-            </button>
-            <button
-              className="auth-text-button"
-              onClick={() => {
-                setAuthMessage('');
-                setAuthMode(authMode === 'sign-in' ? 'create' : 'sign-in');
-              }}
-              type="button"
-            >
-              {authMode === 'sign-in'
-                ? "Don't have an account? Create one"
-                : 'Already have an account? Sign in'}
-            </button>
-            <button className="auth-link-button" onClick={handleAnonymousSignIn} disabled={!isFirebaseConfigured() || isAuthBusy}>
-              Continue anonymously
-            </button>
-            {authMessage && <div className="auth-message">{authMessage}</div>}
-            {getGoogleRedirectUri() && (
-              <div className="auth-help">
-                Google redirect URL: <span>{getGoogleRedirectUri()}</span>
-              </div>
-            )}
-          </div>
-        )}
         <Tabs 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 

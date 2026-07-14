@@ -1428,6 +1428,40 @@ body {
   font-weight: 700;
 }
 
+.login-required {
+  background: #ffffff;
+  border: 1px solid rgba(16, 185, 129, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  padding: 22px 18px;
+  text-align: center;
+}
+
+.login-required h2 {
+  color: #0f172a;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.login-required p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0 auto 16px;
+  max-width: 340px;
+}
+
+.login-required-button {
+  background: #10b981;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 18px;
+}
+
 .notes-list-header,
 .note-detail-header {
   display: flex;

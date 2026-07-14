@@ -5,24 +5,25 @@
   "description": "A quick and easy browser extension that works on every website",
   "action": {
     "default_popup": "index.html",
-    "default_title": "QuickDrop"
+    "default_title": "QuickDrop",
+    "default_icon": {
+      "128": "icon-128.png"
+    }
+  },
+  "icons": {
+    "128": "icon-128.png"
   },
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"]
-    }
-  ],
   "permissions": [
     "activeTab",
     "storage",
     "contextMenus",
     "identity",
-    "notifications"
+    "notifications",
+    "alarms",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>"

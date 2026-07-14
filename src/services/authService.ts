@@ -1,17 +1,14 @@
 import {
-  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInAnonymously as firebaseSignInAnonymously,
-  signInWithCredential,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signOut as firebaseSignOut,
   type Unsubscribe,
   type User,
-} from 'firebase/auth';
+} from 'firebase/auth/web-extension';
 import type { QuickDropUser } from '../types';
-import { getFirebaseServices } from './firebase';
+import { getFirebaseServices, waitForAuthPersistence } from './firebase';
 
 type ChromeIdentityApi = {
   identity?: {
@@ -46,7 +43,9 @@ export const onAuthUserChanged = (
 ): Unsubscribe => {
   const { auth } = getFirebaseServices();
   return onAuthStateChanged(auth, (user) => {
-    callback(user ? mapFirebaseUser(user) : null);
+    waitForAuthPersistence().then(() => {
+      callback(user ? mapFirebaseUser(user) : null);
+    });
   });
 };
 
@@ -56,58 +55,6 @@ export const getGoogleRedirectUri = (): string | null => {
   }
 
   return null;
-};
-
-export const signInWithGoogle = async (): Promise<QuickDropUser> => {
-  if (typeof chrome !== 'undefined' && chrome.identity) {
-    return signInWithGoogleInExtension();
-  }
-
-  const { auth } = getFirebaseServices();
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  return mapFirebaseUser(result.user);
-};
-
-const signInWithGoogleInExtension = async (): Promise<QuickDropUser> => {
-  const clientId = import.meta.env.VITE_FIREBASE_WEB_CLIENT_ID;
-  if (!clientId || typeof chrome === 'undefined' || !chrome.identity) {
-    throw new Error('Google web client ID is missing.');
-  }
-
-  const redirectUri = chrome.identity.getRedirectURL();
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: 'token',
-    redirect_uri: redirectUri,
-    scope: 'openid email profile',
-    prompt: 'select_account',
-  });
-
-  const responseUrl = await new Promise<string>((resolve, reject) => {
-    chrome.identity?.launchWebAuthFlow(
-      { url: `https://accounts.google.com/o/oauth2/v2/auth?${params}`, interactive: true },
-      (url) => {
-        const error = chrome.runtime?.lastError?.message;
-        if (error || !url) {
-          reject(new Error(error || 'Google sign in was cancelled.'));
-          return;
-        }
-        resolve(url);
-      }
-    );
-  });
-
-  const fragment = new URL(responseUrl).hash.slice(1);
-  const accessToken = new URLSearchParams(fragment).get('access_token');
-  if (!accessToken) {
-    throw new Error('Google did not return an access token.');
-  }
-
-  const { auth } = getFirebaseServices();
-  const credential = GoogleAuthProvider.credential(null, accessToken);
-  const result = await signInWithCredential(auth, credential);
-  return mapFirebaseUser(result.user);
 };
 
 export const getAuthErrorMessage = (error: unknown): string => {
@@ -151,13 +98,6 @@ export const getAuthErrorMessage = (error: unknown): string => {
     default:
       return message || 'Authentication failed. Please try again.';
   }
-};
-
-export const signInWithGoogleIdToken = async (idToken: string): Promise<QuickDropUser> => {
-  const { auth } = getFirebaseServices();
-  const credential = GoogleAuthProvider.credential(idToken);
-  const result = await signInWithCredential(auth, credential);
-  return mapFirebaseUser(result.user);
 };
 
 export const signInWithEmail = async (

@@ -1,15 +1,14 @@
 import { firebaseBackend } from './firebaseBackend';
-import { localBackend } from './localBackend';
 import type { BackendClient, BackendMode } from './types';
 
-const configuredMode = (import.meta.env.VITE_QUICKDROP_BACKEND ?? 'local') as BackendMode;
+const configuredMode = (import.meta.env.VITE_QUICKDROP_BACKEND ?? 'firebase') as BackendMode;
 
 export const getBackendClient = (): BackendClient => {
-  if (configuredMode === 'firebase' && firebaseBackend.isReady()) {
+  if (firebaseBackend.isReady()) {
     return firebaseBackend;
   }
 
-  return localBackend;
+  throw new Error('Sign in to use QuickDrop.');
 };
 
 export const getConfiguredBackendMode = (): BackendMode => configuredMode;
