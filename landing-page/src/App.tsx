@@ -1,893 +1,277 @@
-import { useState, useEffect } from 'react'
 import './App.css'
 
+const demoScreens = [
+  { src: './demo-drop.png', label: 'Drop', text: 'Save a link, file, note, or reminder before you lose your flow.' },
+  { src: './demo-feed.png', label: 'Feed', text: 'See everything you saved from your phone and browser in one place.' },
+  { src: './demo-notes.png', label: 'Notes', text: 'Keep reusable text ready for applications, forms, research, and messages.' },
+  { src: './demo-tasks.png', label: 'Tasks', text: 'Turn important saved items into simple follow-up tasks.' },
+  { src: './demo-profile.png', label: 'Profile', text: 'Sign in once and keep your saved workspace with you.' },
+]
+
+const features = [
+  {
+    title: 'Capture anything useful',
+    text: 'Save links, notes, images, PDFs, documents, commands, and copied text in seconds.',
+  },
+  {
+    title: 'Use it on phone and Chrome',
+    text: 'Save from one device and continue from the other without sending links to yourself.',
+  },
+  {
+    title: 'Stop hunting for files',
+    text: 'Keep important documents and images close when filling forms or applying somewhere.',
+  },
+  {
+    title: 'Come back at the right time',
+    text: 'Add reminders and tasks so saved things do not quietly disappear from your day.',
+  },
+]
+
+const steps = [
+  'Find something useful on your phone or laptop.',
+  'Save it to QuickDrop in seconds.',
+  'Open it later from the app or Chrome extension.',
+]
+
+const pricingPlans = [
+  {
+    name: 'Free',
+    price: '$0',
+    note: 'For trying QuickDrop and building a personal save-later habit.',
+    features: ['Chrome extension', 'Save links and snippets', 'Basic notes and tasks', 'Manual reminders'],
+  },
+  {
+    name: 'Lifetime',
+    price: '$5',
+    note: 'One-time payment for people who want the full personal workspace.',
+    features: ['Mobile app sync', 'File and PDF saving', 'Unlimited saved items', 'Priority beta access'],
+    featured: true,
+  },
+  {
+    name: 'Custom',
+    price: 'Talk to us',
+    note: 'For teams, founders, researchers, and small groups that save together.',
+    features: ['Shared team spaces', 'Shared tasks and reminders', 'Team onboarding', 'Custom integrations'],
+  },
+]
+
 function App() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [activeTab, setActiveTab] = useState<'drop' | 'notes' | 'tasks'>('drop')
-  const [activeGalleryTab, setActiveGalleryTab] = useState<'drop' | 'notes' | 'feed' | 'tasks'>('drop')
-  const [liveInputText, setLiveInputText] = useState('')
-  const [tasks, setTasks] = useState([
-    { id: 1, text: 'Take quick notes during the Zoom meeting', done: true },
-    { id: 2, text: 'Audit extension source code for security', done: false },
-    { id: 3, text: 'Load unpacked build inside Chrome extensions', done: false },
-  ])
-  const [savedItems, setSavedItems] = useState([
-    { id: '1', title: 'https://vite.dev/config', type: 'url', status: 'review', reminderDate: '' },
-    { id: '2', title: 'Storage quotas: use chrome.storage', type: 'text', status: 'review', reminderDate: '' }
-  ]);
-  const [currentTabTitle, setCurrentTabTitle] = useState('Design Sync & Review')
-  const [currentTabUrl, setCurrentTabUrl] = useState('https://meet.google.com/abc-defg-hij')
-  const [linkReminder, setLinkReminder] = useState('')
-  const [tabReminder, setTabReminder] = useState('')
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-  }, [theme])
-
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t))
-  }
+  const repeatedScreens = [...demoScreens, ...demoScreens]
 
   return (
-    <>
-      {/* Site Navigation Header */}
-      <header className="site-header">
-        <div className="header-container">
-          <div className="logo-brand">
-            <span className="logo-dot"></span>
-            QuickDrop
-          </div>
-          <nav className="header-nav">
-            <a href="#features">Features</a>
-            <a href="#compare">Compare</a>
-            <a href="#installation">Install</a>
-            <a href="#audit">Source</a>
-            <button
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="theme-toggle-btn"
-              aria-label="Toggle Theme"
-            >
-              {theme === 'light' ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-              )}
-            </button>
-            <a href="./quickdrop.zip" download className="nav-cta">Download</a>
-          </nav>
-        </div>
-      </header>      {/* Hero Content Section */}
-      <section className="hero-split-section">
-        {/* Left Column: Copy & CTA */}
-        <div className="hero-copy-column">
-          <div className="badge-promo">⚡ Your Browser's Temporary Memory</div>
-          <h1 className="hero-h1">Stop Sending Links<br />to Yourself.</h1>
-          <p className="subtitle-description" style={{ fontSize: '15px', margin: '0 0 16px 0', lineHeight: '1.5' }}>
-            Save links, notes, files, screenshots, and tasks in one place — then come back when you're ready.
+    <main>
+      <header className="site-nav">
+        <a className="brand" href="#top" aria-label="QuickDrop home">
+          <img src="./quickdrop-logo.png" alt="" />
+          <span>QuickDrop</span>
+        </a>
+        <nav>
+          <a href="#demo">Demo</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#contact">Contact</a>
+          <a className="nav-button" href="./quickdrop.zip" download>Get Extension</a>
+        </nav>
+      </header>
+
+      <section id="top" className="hero">
+        <div className="hero-copy">
+          <p className="eyebrow">For tabs, files, notes, and reminders</p>
+          <h1>QuickDrop</h1>
+          <p className="hero-lede">
+            One fast place to save what you find online: job posts, research links,
+            PDFs, form text, screenshots, and ideas. Save it now, use it later from
+            your phone or Chrome.
           </p>
-
-          <div className="hero-bullets-box" style={{ margin: '0 0 20px 0', padding: '16px', borderRadius: '8px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)' }}>
-            <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-h)', display: 'block', marginBottom: '8px', textAlign: 'left' }}>No more:</span>
-            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: 'var(--text)', display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
-              <li>Keeping dozens of tabs open "for later"</li>
-              <li>Sending links to yourself on WhatsApp</li>
-              <li>Creating random documents for quick notes</li>
-              <li>Losing important things in bookmarks</li>
-            </ul>
+          <div className="hero-actions">
+            <a className="primary-action" href="./quickdrop.zip" download>Download Extension</a>
+            <a className="secondary-action" href="#demo">See the app</a>
           </div>
+          <div className="proof-row" aria-label="QuickDrop highlights">
+            <span>Save from phone</span>
+            <span>Use in Chrome</span>
+            <span>Links, notes, files</span>
+          </div>
+        </div>
 
-          <p style={{ fontStyle: 'italic', fontSize: '13px', color: 'var(--text)', margin: '0 0 20px 0', textAlign: 'left' }}>
-            Just drop it into QuickDrop and continue your work. <strong style={{ color: 'var(--text-h)' }}>Save now. Deal with it later.</strong>
+        <div className="hero-product" aria-label="QuickDrop product preview">
+          <div className="phone-shell hero-phone">
+            <img src="./demo-drop.png" alt="QuickDrop mobile drop screen" />
+          </div>
+          <div className="extension-panel">
+            <div className="extension-top">
+              <img src="./quickdrop-logo.png" alt="" />
+              <span>QuickDrop</span>
+            </div>
+            <div className="extension-tabs">
+              <span>Drop</span>
+              <span>Feed</span>
+              <span>Notes</span>
+            </div>
+            <div className="extension-item">
+              <strong>Resume checklist for tomorrow</strong>
+              <small>Saved from phone</small>
+            </div>
+            <div className="extension-item accent">
+              <strong>Intern application list</strong>
+              <small>Reminder set for 7 PM</small>
+            </div>
+            <button>Save Current Tab</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="status-strip" aria-label="Product status">
+        <div>
+          <strong>Built for beta users</strong>
+          <span>Try the extension now and join the mobile app rollout.</span>
+        </div>
+        <div>
+          <strong>Made for real messy work</strong>
+          <span>Research, job hunting, forms, docs, snippets, and files.</span>
+        </div>
+        <div>
+          <strong>Organize less at capture time</strong>
+          <span>Drop first. Search, edit, group, and summarize later.</span>
+        </div>
+      </section>
+
+      <section id="demo" className="demo-section">
+        <div className="section-heading">
+          <p className="eyebrow">Product demo</p>
+          <h2>See the flow before you install it.</h2>
+          <p>
+            The app keeps the daily workspace simple: drop, feed, notes, tasks,
+            and account sync. The screenshots below scroll automatically like a product tour.
           </p>
-
-          <a
-            href="./quickdrop.zip"
-            download
-            className="counter"
-            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download Extension (.zip)
-          </a>
         </div>
-
-        {/* Right Column: Browser Showcase Mockup */}
-        <div className="hero-mockup-column">
-          <div className="browser-mockup">
-            <div className="browser-header">
-              <div className="browser-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <div className="browser-address">
-                https://meet.google.com/abc-defg-hij
-              </div>
-            </div>
-
-            <div className="browser-body">
-              {/* Left Page (Simulated Google Meet / Web Workspace) */}
-              <div className="mock-webpage">
-                <div className="mock-video-meeting">
-                  <div className="video-card">
-                    <div className="video-avatar">JS</div>
-                    <span>John (Presenter)</span>
-                  </div>
-                  <div className="video-card">
-                    <div className="video-avatar">YO</div>
-                    <span>You</span>
-                  </div>
+        <div className="demo-marquee">
+          <div className="demo-track">
+            {repeatedScreens.map((screen, index) => (
+              <article className="demo-card" key={`${screen.label}-${index}`}>
+                <div className="phone-shell">
+                  <img src={screen.src} alt={`QuickDrop ${screen.label} screen`} />
                 </div>
-                <div className="mock-meeting-info">
-                  <h3>Design Sync & Review</h3>
-                  <p style={{ fontSize: '11px', color: 'var(--text)' }}>
-                    Discussing final components and local storage schema upgrades.
-                  </p>
+                <div>
+                  <strong>{screen.label}</strong>
+                  <span>{screen.text}</span>
                 </div>
-              </div>
-
-              {/* Right Sidebar (QuickDrop Extension Panel) */}
-              <div className="mock-sidebar">
-                <div className="sidebar-header">
-                  <span className="sidebar-title">QuickDrop</span>
-                  <span className="sidebar-version">v1.0.0</span>
-                </div>
-
-                {/* Sidebar Tabs */}
-                <div className="sidebar-tabs">
-                  <button
-                    className={`sidebar-tab-btn ${activeTab === 'drop' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('drop')}
-                  >
-                    Drop
-                  </button>
-                  <button
-                    className={`sidebar-tab-btn ${activeTab === 'notes' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('notes')}
-                  >
-                    Notes
-                  </button>
-                  <button
-                    className={`sidebar-tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('tasks')}
-                  >
-                    Tasks
-                  </button>
-                </div>
-
-                {/* Sidebar Body */}
-                <div className="sidebar-body">
-                  {activeTab === 'drop' && (
-                    <>
-                      {/* Drag & Drop zone */}
-                      <div className="sidebar-drop-area" style={{ padding: '8px 12px' }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '2px' }}>
-                          <polyline points="16 16 12 12 8 16"></polyline>
-                          <line x1="12" y1="12" x2="12" y2="21"></line>
-                          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-                        </svg>
-                        <div style={{ fontWeight: 'bold', fontSize: '10px' }}>Drag files to drop</div>
-                      </div>
-
-                      {/* Add Link / Snippet */}
-                      <div className="mockup-section" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '6px' }}>
-                        <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px' }}>ADD LINK / SNIPPET</label>
-                        <div className="sidebar-input-group">
-                          <input
-                            type="text"
-                            placeholder="Paste URL or text..."
-                            value={liveInputText}
-                            onChange={(e) => setLiveInputText(e.target.value)}
-                          />
-                          <button
-                            className="sidebar-btn-sm"
-                            onClick={() => {
-                              if (liveInputText) {
-                                setSavedItems([
-                                  {
-                                    id: Date.now().toString(),
-                                    title: liveInputText,
-                                    type: liveInputText.startsWith('http') ? 'url' : 'text',
-                                    status: 'review',
-                                    reminderDate: linkReminder
-                                  },
-                                  ...savedItems
-                                ]);
-                                setLiveInputText('');
-                                setLinkReminder('');
-                              }
-                            }}
-                          >
-                            Drop
-                          </button>
-                        </div>
-
-                        {/* Quick options row */}
-                        <div className="mock-options-row" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                          <button
-                            type="button"
-                            className={`mock-opt-btn ${linkReminder === 'Tomorrow' ? 'active' : ''}`}
-                            onClick={() => setLinkReminder(linkReminder === 'Tomorrow' ? '' : 'Tomorrow')}
-                            style={{
-                              flex: 1,
-                              fontSize: '9px',
-                              padding: '4px 6px',
-                              background: linkReminder === 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
-                              color: linkReminder === 'Tomorrow' ? '#fff' : 'var(--text-h)',
-                              border: '1px solid var(--bm-border)',
-                              borderRadius: '4px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Remind Tomorrow
-                          </button>
-                          <button
-                            type="button"
-                            className={`mock-opt-btn ${linkReminder && linkReminder !== 'Tomorrow' ? 'active' : ''}`}
-                            onClick={(e) => {
-                              const parent = e.currentTarget.parentElement;
-                              const picker = parent?.querySelector('.hidden-picker') as HTMLInputElement;
-                              if (picker) {
-                                try { picker.showPicker(); } catch { picker.click(); }
-                              }
-                            }}
-                            style={{
-                              flex: 1,
-                              fontSize: '9px',
-                              padding: '4px 6px',
-                              background: linkReminder && linkReminder !== 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
-                              color: linkReminder && linkReminder !== 'Tomorrow' ? '#fff' : 'var(--text-h)',
-                              border: '1px solid var(--bm-border)',
-                              borderRadius: '4px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {linkReminder && linkReminder !== 'Tomorrow' ? 'Custom Time ✓' : 'Pick Date/Time'}
-                          </button>
-                          <input
-                            type="datetime-local"
-                            className="hidden-picker"
-                            style={{ display: 'none' }}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setLinkReminder(new Date(e.target.value).toLocaleDateString());
-                              } else {
-                                setLinkReminder('');
-                              }
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Save Current Tab */}
-                      <div className="mockup-section" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '6px' }}>
-                        <label style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text)', display: 'block', marginBottom: '4px' }}>SAVE CURRENT TAB</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <input
-                            type="text"
-                            placeholder="Tab Title"
-                            value={currentTabTitle}
-                            onChange={(e) => setCurrentTabTitle(e.target.value)}
-                            style={{
-                              border: '1px solid var(--bm-border)',
-                              background: 'var(--bm-bg)',
-                              color: 'var(--text-h)',
-                              borderRadius: '4px',
-                              padding: '4px 8px',
-                              fontSize: '10px',
-                              outline: 'none',
-                              width: '100%',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                          <input
-                            type="text"
-                            placeholder="Tab URL"
-                            value={currentTabUrl}
-                            onChange={(e) => setCurrentTabUrl(e.target.value)}
-                            style={{
-                              border: '1px solid var(--bm-border)',
-                              background: 'var(--bm-bg)',
-                              color: 'var(--text-h)',
-                              borderRadius: '4px',
-                              padding: '4px 8px',
-                              fontSize: '10px',
-                              outline: 'none',
-                              width: '100%',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Quick options row for current tab */}
-                        <div className="mock-options-row" style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                          <button
-                            type="button"
-                            className={`mock-opt-btn ${tabReminder === 'Tomorrow' ? 'active' : ''}`}
-                            onClick={() => setTabReminder(tabReminder === 'Tomorrow' ? '' : 'Tomorrow')}
-                            style={{
-                              flex: 1,
-                              fontSize: '9px',
-                              padding: '4px 6px',
-                              background: tabReminder === 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
-                              color: tabReminder === 'Tomorrow' ? '#fff' : 'var(--text-h)',
-                              border: '1px solid var(--bm-border)',
-                              borderRadius: '4px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Remind Tomorrow
-                          </button>
-                          <button
-                            type="button"
-                            className={`mock-opt-btn ${tabReminder && tabReminder !== 'Tomorrow' ? 'active' : ''}`}
-                            onClick={(e) => {
-                              const parent = e.currentTarget.parentElement;
-                              const picker = parent?.querySelector('.hidden-tab-picker') as HTMLInputElement;
-                              if (picker) {
-                                try { picker.showPicker(); } catch { picker.click(); }
-                              }
-                            }}
-                            style={{
-                              flex: 1,
-                              fontSize: '9px',
-                              padding: '4px 6px',
-                              background: tabReminder && tabReminder !== 'Tomorrow' ? 'var(--accent)' : 'var(--bm-card-bg)',
-                              color: tabReminder && tabReminder !== 'Tomorrow' ? '#fff' : 'var(--text-h)',
-                              border: '1px solid var(--bm-border)',
-                              borderRadius: '4px',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            {tabReminder && tabReminder !== 'Tomorrow' ? 'Custom Time ✓' : 'Pick Date/Time'}
-                          </button>
-                          <input
-                            type="datetime-local"
-                            className="hidden-tab-picker"
-                            style={{ display: 'none' }}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setTabReminder(new Date(e.target.value).toLocaleDateString());
-                              } else {
-                                setTabReminder('');
-                              }
-                            }}
-                          />
-                        </div>
-
-                        <button
-                          className="sidebar-btn-sm"
-                          style={{ width: '100%', marginTop: '6px', padding: '5px' }}
-                          onClick={() => {
-                            if (currentTabTitle && currentTabUrl) {
-                              setSavedItems([
-                                {
-                                  id: Date.now().toString(),
-                                  title: currentTabTitle,
-                                  type: 'url',
-                                  status: 'review',
-                                  reminderDate: tabReminder
-                                },
-                                ...savedItems
-                              ]);
-                              setTabReminder('');
-                            }
-                          }}
-                        >
-                          Save
-                        </button>
-                      </div>
-
-                      {/* Unified list */}
-                      <div className="sidebar-list" style={{ borderTop: '1px solid var(--bm-border)', paddingTop: '8px' }}>
-                        {savedItems.map(item => (
-                          <div key={item.id} className="sidebar-item" style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'stretch' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span className={`badge ${item.type === 'url' ? 'url' : 'note'}`}>{item.type === 'url' ? 'Link' : 'Text'}</span>
-                              <div className="item-text" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
-
-                              {/* Done checkmark icon button in sidebar */}
-                              <button
-                                onClick={() => {
-                                  setSavedItems(savedItems.map(si =>
-                                    si.id === item.id ? { ...si, status: si.status === 'done' ? 'review' : 'done' } : si
-                                  ));
-                                }}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  padding: '2px 4px',
-                                  fontSize: '11px',
-                                  color: item.status === 'done' ? '#10b981' : '#94a3b8'
-                                }}
-                                title={item.status === 'done' ? 'Mark as Review' : 'Mark as Done'}
-                              >
-                                ✓
-                              </button>
-                            </div>
-
-                            {/* Done / Reminder labels on card in mockup list */}
-                            {(item.status === 'done' || item.reminderDate) && (
-                              <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
-                                {item.status === 'done' && (
-                                  <span style={{ fontSize: '8px', background: '#d1fae5', color: '#065f46', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>✓ Done</span>
-                                )}
-                                {item.reminderDate && (
-                                  <span style={{ fontSize: '8px', background: '#eff6ff', color: '#1e40af', padding: '1px 4px', borderRadius: '3px', fontWeight: 'bold' }}>⏰ {item.reminderDate}</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {activeTab === 'notes' && (
-                    <div className="sidebar-notes-box">
-                      <div className="notes-box-header">
-                        <span>Untitled Note</span>
-                        <div className="notes-box-tools">
-                          <span>B</span>
-                          <span>I</span>
-                          <span>• List</span>
-                        </div>
-                      </div>
-                      <div className="notes-box-body">
-                        <p style={{ fontWeight: '600', marginBottom: '4px' }}>Brainstorm:</p>
-                        <ul style={{ paddingLeft: '12px', margin: 0 }}>
-                          {liveInputText ? (
-                            <li>{liveInputText}</li>
-                          ) : (
-                            <>
-                              <li>Inspect manifest default_popup path</li>
-                              <li>Clean storage layout</li>
-                            </>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'tasks' && (
-                    <div className="sidebar-tasks">
-                      <div className="sidebar-input-group">
-                        <input
-                          type="text"
-                          placeholder="New task..."
-                          value={liveInputText}
-                          onChange={(e) => setLiveInputText(e.target.value)}
-                        />
-                        <button
-                          className="sidebar-btn-sm"
-                          onClick={() => {
-                            if (liveInputText) {
-                              setTasks([{ id: Date.now(), text: liveInputText, done: false }, ...tasks])
-                              setLiveInputText('')
-                            }
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div className="sidebar-tasks-list">
-                        {tasks.map(t => (
-                          <div
-                            key={t.id}
-                            className={`sidebar-task-item ${t.done ? 'done' : ''}`}
-                            onClick={() => toggleTask(t.id)}
-                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            <input type="checkbox" checked={t.done} onChange={() => { }} />
-                            <span>{t.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      {/* Ticks Divider */}
-      <div className="ticks"></div>
-
-      {/* Product Interface Showcase Gallery */}
-      <section className="showcase-section" id="showcase">
-        <div className="showcase-container">
-          <div className="showcase-header">
-            <h2 className="title-gradient" style={{ fontSize: '28px', margin: '0 0 8px 0', textAlign: 'center' }}>
-              Explore the QuickDrop Interface
-            </h2>
-            <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-              Take a closer look at the actual Chrome extension sidebar tabs, designed to streamline your development and scratchpad workflows.
-            </p>
-          </div>
-
-          <div className="showcase-layout">
-            {/* Gallery Selector Tabs */}
-            <div className="showcase-tabs">
-              <button
-                className={`showcase-tab-btn ${activeGalleryTab === 'drop' ? 'active' : ''}`}
-                onClick={() => setActiveGalleryTab('drop')}
-              >
-
-                <div className="tab-meta">
-                  <h4>File & Link Drop</h4>
-                  <p>Drag files or paste link snippets instantly</p>
-                </div>
-              </button>
-              <button
-                className={`showcase-tab-btn ${activeGalleryTab === 'notes' ? 'active' : ''}`}
-                onClick={() => setActiveGalleryTab('notes')}
-              >
-
-                <div className="tab-meta">
-                  <h4>Persistent Notes</h4>
-                  <p>Rich scratchpad with history auto-saving</p>
-                </div>
-              </button>
-              <button
-                className={`showcase-tab-btn ${activeGalleryTab === 'feed' ? 'active' : ''}`}
-                onClick={() => setActiveGalleryTab('feed')}
-              >
-                <div className="tab-meta">
-                  <h4>Feed & History</h4>
-                  <p>Filter, copy, and manage stored items</p>
-                </div>
-              </button>
-              <button
-                className={`showcase-tab-btn ${activeGalleryTab === 'tasks' ? 'active' : ''}`}
-                onClick={() => setActiveGalleryTab('tasks')}
-              >
-
-                <div className="tab-meta">
-                  <h4>Today's Checklist</h4>
-                  <p>Lightweight list with progress metrics</p>
-                </div>
-              </button>
-            </div>
-
-            {/* Gallery Image Display */}
-            <div className="showcase-display">
-              <div className="showcase-frame">
-                <div className="showcase-frame-header">
-                  <div className="dots">
-                    <span className="dot-red"></span>
-                    <span className="dot-yellow"></span>
-                    <span className="dot-green"></span>
-                  </div>
-                  <span className="frame-title">
-                    {activeGalleryTab === 'drop' && 'QuickDrop Sidebar — Drop Zone'}
-                    {activeGalleryTab === 'notes' && 'QuickDrop Sidebar — Notes Scratchpad'}
-                    {activeGalleryTab === 'feed' && 'QuickDrop Sidebar — Feed & History'}
-                    {activeGalleryTab === 'tasks' && 'QuickDrop Sidebar — Task Checklist'}
-                  </span>
-                </div>
-                <div className="showcase-frame-body">
-                  {activeGalleryTab === 'drop' && (
-                    <img src="/QuickDrop/img4.png" alt="File & Link Drop Interface" className="showcase-img" />
-                  )}
-                  {activeGalleryTab === 'notes' && (
-                    <img src="/QuickDrop/img1.png" alt="Persistent Notes Interface" className="showcase-img" />
-                  )}
-                  {activeGalleryTab === 'feed' && (
-                    <img src="/QuickDrop/img2.png" alt="Activity Feed Interface" className="showcase-img" />
-                  )}
-                  {activeGalleryTab === 'tasks' && (
-                    <img src="/QuickDrop/img3.png" alt="Today's Tasks Interface" className="showcase-img" />
-                  )}
-                </div>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Built for the Things You Don't Want to Lose */}
-      <section className="features-section" id="features">
-        <h2 className="title-gradient" style={{ fontSize: '28px', margin: '0 0 8px 0', textAlign: 'center' }}>
-          Built for the Things You Don't Want to Lose
-        </h2>
-        <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '650px', marginLeft: 'auto', marginRight: 'auto' }}>
-          QuickDrop helps you capture information instantly and return to it when you're ready.
-        </p>
-
-        <div className="features-grid">
-          <div className="feature-card">
-            <h3 style={{ gap: '6px' }}>
-              <span style={{ fontSize: '18px' }}>👥</span> In a meeting?
-            </h3>
-            <p>Open QuickDrop and write notes without switching tabs.</p>
-          </div>
-
-          <div className="feature-card">
-            <h3 style={{ gap: '6px' }}>
-              <span style={{ fontSize: '18px' }}>💼</span> Found a job but don't have time?
-            </h3>
-            <p>Save the link and close the tab.</p>
-          </div>
-
-          <div className="feature-card">
-            <h3 style={{ gap: '6px' }}>
-              <span style={{ fontSize: '18px' }}>🖼️</span> Need an image later?
-            </h3>
-            <p>Drop it into QuickDrop and keep moving.</p>
-          </div>
-
-          <div className="feature-card">
-            <h3 style={{ gap: '6px' }}>
-              <span style={{ fontSize: '18px' }}>🔍</span> Researching something?
-            </h3>
-            <p>Store important links without turning your browser into a tab graveyard.</p>
-          </div>
+      <section id="features" className="feature-section">
+        <div className="section-heading narrow">
+          <p className="eyebrow">Why it feels useful</p>
+          <h2>Less searching, less sending links to yourself.</h2>
         </div>
-
-        <div className="remembers-banner">
-          {/* Decorative background orbs */}
-          <div className="remembers-orb remembers-orb-left" aria-hidden="true"></div>
-          <div className="remembers-orb remembers-orb-right" aria-hidden="true"></div>
-
-          <div className="remembers-inner">
-            <div className="remembers-eyebrow">
-              <span className="remembers-dot"></span>
-              <span>Zero cloud sync. 100% local.</span>
-            </div>
-
-            <div className="remembers-text-container">
-              <p className="remembers-line-1">Your browser remembers tabs.</p>
-              <h2 className="remembers-title">
-                QuickDrop remembers<br /><span className="remembers-accent">everything else.</span>
-              </h2>
-            </div>
-
-            <div className="remembers-meta">
-              <div className="remembers-stat">
-                <strong>0</strong>
-                <span>Cloud servers</span>
-              </div>
-              <div className="remembers-divider-v"></div>
-              <div className="remembers-stat">
-                <strong>100%</strong>
-                <span>Your data, your browser</span>
-              </div>
-              <div className="remembers-divider-v"></div>
-              <div className="remembers-stat">
-                <strong>∞</strong>
-                <span>Items you can save</span>
-              </div>
-            </div>
-
-            <a href="./quickdrop.zip" download className="remembers-cta-btn">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              Download Extension — It's Free
-            </a>
-          </div>
+        <div className="feature-grid">
+          {features.map((feature) => (
+            <article className="feature-tile" key={feature.title}>
+              <h3>{feature.title}</h3>
+              <p>{feature.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* Divider Line */}
-      <div className="section-divider" style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, transparent, var(--border), transparent)', margin: '0' }}></div>
-
-      {/* Ticks Divider */}
-      <div className="ticks"></div>
-
-      {/* Core Options / Positioning Statements */}
-      <section className="options-section">
-        <h2 className="title-gradient" style={{ fontSize: '26px', margin: '0 0 8px 0', textAlign: 'center' }}>
-          Designed for Your Attention Span
-        </h2>
-        <p style={{ color: 'var(--text)', fontSize: '15px', margin: '0 0 32px 0', textAlign: 'center', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-          Everything you need, none of the clutter. QuickDrop replaces chaotic bookmark folders and self-chats with a single focus.
-        </p>
-
-        <div className="options-grid">
-          <div className="option-card">
-
-            <h3>Your Browser's Temporary Memory</h3>
-            <p>Save now. Deal with it later.</p>
-          </div>
-
-          <div className="option-card">
-
-            <h3>Close The Tab. Keep The Information.</h3>
-            <p>Everything important, nothing cluttered.</p>
-          </div>
-
-          <div className="option-card">
-
-            <h3>Stop Sending Links To Yourself.</h3>
-            <p>Store notes, files, links and tasks in one sidebar.</p>
-          </div>
-
-          <div className="option-card">
-
-            <h3>For People Who Keep 50 Tabs Open.</h3>
-            <p>Save what matters and close the rest.</p>
-          </div>
-
-          <div className="option-card">
-
-            <h3>Capture Anything Without Leaving Your Workflow.</h3>
-            <p>Notes. Links. Files. Tasks. One sidebar.</p>
-          </div>
+      <section className="workflow-section">
+        <div className="workflow-copy">
+          <p className="eyebrow">How it works</p>
+          <h2>Capture first. Organize later.</h2>
+          <p>
+            QuickDrop is for the messy moment when you cannot stop and organize.
+            Save the thing, keep moving, then return from the feed when you have time.
+          </p>
         </div>
-      </section>
-
-      {/* Ticks Divider */}
-      <div className="ticks"></div>
-
-      {/* Feature Comparison Matrix */}
-      <section className="comparison-section" id="compare">
-        <h2 style={{ fontSize: '24px', margin: '0 0 6px 0', color: 'var(--text-h)' }}>How It Compares</h2>
-        <p style={{ color: 'var(--text)', fontSize: '14px', margin: '0 0 24px 0' }}>
-          Why developers choose QuickDrop over standard bookmarking tools or notepad apps.
-        </p>
-
-        <div className="table-wrapper">
-          <table className="comparison-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th style={{ color: 'var(--accent)' }}>QuickDrop</th>
-                <th>Standard Bookmarks</th>
-                <th>Notes Apps</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Zero Tab-Switching Access</strong></td>
-                <td className="check-yes">✔ Yes (Side Panel)</td>
-                <td className="check-no">✖ Requires New Tab</td>
-                <td className="check-no">✖ Separate App Window</td>
-              </tr>
-              <tr>
-                <td><strong>Drag-and-Drop Files</strong></td>
-                <td className="check-yes">✔ Yes</td>
-                <td className="check-no">✖ No</td>
-                <td className="check-no">✖ Drag limitations</td>
-              </tr>
-              <tr>
-                <td><strong>Smart URL Parsing</strong></td>
-                <td className="check-yes">✔ Yes</td>
-                <td className="check-no">✖ Manual bookmarks</td>
-                <td className="check-no">✖ Paste raw strings</td>
-              </tr>
-              <tr>
-                <td><strong>Daily Focused Checklist</strong></td>
-                <td className="check-yes">✔ Yes (Resets daily)</td>
-                <td className="check-no">✖ No</td>
-                <td className="check-yes">✔ Yes</td>
-              </tr>
-              <tr>
-                <td><strong>Corporate Safe / 100% Local</strong></td>
-                <td className="check-yes">✔ Yes</td>
-                <td className="check-yes">✔ Yes</td>
-                <td className="check-no">✖ Cloud databases sync</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Ticks Divider */}
-      <div className="ticks"></div>
-
-      {/* Horizontal Installation Steps Section */}
-      <section className="guide-section" id="installation">
-        <h2 style={{ fontSize: '24px', margin: '0 0 6px 0', color: 'var(--text-h)', textAlign: 'center' }}>Installation Guide</h2>
-        <p style={{ color: 'var(--text)', fontSize: '14px', margin: '0 0 32px 0', textAlign: 'center' }}>
-          Get QuickDrop up and running in Google Chrome in under 30 seconds.
-        </p>
-
-        <div className="steps-container">
-          <div className="step-card">
-            <div className="step-number-badge">1</div>
-            <h3>Download Installer</h3>
-            <p>Click below to download the latest packaged extension release archive.</p>
-            <a href="./quickdrop.zip" download className="download-step-btn">
-              Download .zip
-            </a>
-          </div>
-
-          <div className="step-card">
-            <div className="step-number-badge">2</div>
-            <h3>Open Extensions Tab</h3>
-            <p>Type <code>chrome://extensions</code> inside your Chrome browser URL address bar and press Enter.</p>
-          </div>
-
-          <div className="step-card">
-            <div className="step-number-badge">3</div>
-            <h3>Load Unpacked Build</h3>
-            <p>Enable <strong>Developer mode</strong> (top-right toggle), click <strong>Load unpacked</strong> (top-left button), and select the unzipped directory.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Ticks Divider */}
-      <div className="ticks"></div>
-
-      {/* Audit & Build Section */}
-      <section className="audit-section" id="audit">
-        <div className="audit-content">
-          <div className="audit-text">
-            <h2>Audit & Build from Source</h2>
-            <p>
-              Your security is paramount. Because QuickDrop stores all data locally in Chrome's sandbox database with <strong>zero cloud sync</strong>, we encourage you to verify the code yourself.
-            </p>
-            <p>
-              To compile the extension manually, clone the repository and run the build scripts to output your own clean, inspected bundle:
-            </p>
-          </div>
-
-          <div className="terminal-container">
-            <div className="terminal-bar">
-              <div className="dots">
-                <span className="dot-red"></span>
-                <span className="dot-yellow"></span>
-                <span className="dot-green"></span>
-              </div>
-              <span className="terminal-title">bash - Compile Extension</span>
+        <div className="steps">
+          {steps.map((step, index) => (
+            <div className="step" key={step}>
+              <span>{index + 1}</span>
+              <p>{step}</p>
             </div>
-            <div className="terminal-body">
-              <div className="terminal-line"><span className="prompt">$</span> git clone https://github.com/YOUR_USERNAME/QuickDrop.git</div>
-              <div className="terminal-line"><span className="prompt">$</span> cd QuickDrop</div>
-              <div className="terminal-line"><span className="prompt">$</span> npm install</div>
-              <div className="terminal-line"><span className="prompt">$</span> npm run build</div>
-              <div className="terminal-comment"># Select the compiled 'dist/' directory in chrome://extensions!</div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Site Footer */}
-      <footer className="site-footer">
-        <div className="footer-container">
-          <div className="footer-dev-info">
-            <h3>About the Creator</h3>
-            <p>
-              QuickDrop was designed and built by <strong>Aaryan</strong>. I love building lightweight, zero-friction tools that solve real developer workflows, eliminate window-switching fatigue, and keep user data fully private and local.
-            </p>
-            <p className="dev-contact-links" style={{ marginTop: '12px', fontSize: '13px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <a href="https://aaryan359.github.io/portfolio/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                Portfolio Website
+      <section id="privacy" className="privacy-section">
+        <div>
+          <p className="eyebrow">Simple and clear</p>
+          <h2>Your saved workspace stays with your account.</h2>
+          <p>
+            QuickDrop is for saving the things you choose: links, notes, files,
+            reminders, and tasks. Your account keeps them available across the
+            app and extension, and you can delete saved items when you no longer need them.
+          </p>
+        </div>
+        <div className="privacy-links">
+          <a href="./PRIVACY_POLICY.md">What data is saved</a>
+          <a href="./TERMS.md">Beta usage terms</a>
+          <a href="./LAUNCH_CHECKLIST.md">Product roadmap notes</a>
+        </div>
+      </section>
+
+      <section id="pricing" className="pricing-section">
+        <div className="section-heading narrow">
+          <p className="eyebrow">Simple pricing</p>
+          <h2>Start free. Upgrade when QuickDrop becomes part of your flow.</h2>
+          <p>
+            The goal is simple: make saving and reusing important things painless.
+            Personal users can keep it lightweight, and teams can ask for shared workflows.
+          </p>
+        </div>
+        <div className="pricing-grid">
+          {pricingPlans.map((plan) => (
+            <article className={`pricing-card ${plan.featured ? 'featured' : ''}`} key={plan.name}>
+              {plan.featured ? <span className="plan-badge">Best for personal use</span> : null}
+              <h3>{plan.name}</h3>
+              <strong className="plan-price">{plan.price}</strong>
+              <p>{plan.note}</p>
+              <ul>
+                {plan.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+              <a href={plan.name === 'Custom' ? '#contact' : './quickdrop.zip'} download={plan.name !== 'Custom'}>
+                {plan.name === 'Custom' ? 'Contact for teams' : 'Get started'}
               </a>
-              <a href="mailto:aaryanmeena96@gmail.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                aaryanmeena96@gmail.com
-              </a>
-            </p>
-          </div>
-          <div className="footer-links">
-            <p className="copyright">© 2026 QuickDrop. Built with Vite & React.</p>
-          </div>
+            </article>
+          ))}
         </div>
+      </section>
+
+      <section id="contact" className="contact-section">
+        <div>
+          <p className="eyebrow">Contact</p>
+          <h2>Want to try QuickDrop or talk about a team workflow?</h2>
+          <p>
+            I am building QuickDrop in public and looking for early users who save a lot of
+            links, notes, files, job posts, research, or reusable text.
+          </p>
+        </div>
+        <div className="contact-card">
+          <img src="./quickdrop-logo.png" alt="" />
+          <h3>Aaryan Meena</h3>
+          <a href="mailto:aaryanmeena96@gmail.com">aaryanmeena96@gmail.com</a>
+          <a href="https://github.com/aaryan359" target="_blank" rel="noreferrer">github.com/aaryan359</a>
+        </div>
+      </section>
+
+      <section className="final-cta">
+        <img src="./quickdrop-logo.png" alt="" />
+        <h2>Start saving without interrupting your work.</h2>
+        <p>Try the Chrome extension today. Mobile app beta is being prepared for testers.</p>
+        <a className="primary-action" href="./quickdrop.zip" download>Download QuickDrop</a>
+      </section>
+
+      <footer>
+        <span>QuickDrop</span>
+        <span>Save now. Deal with it later.</span>
       </footer>
-    </>
+    </main>
   )
 }
 
