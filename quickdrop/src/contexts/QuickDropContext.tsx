@@ -105,14 +105,16 @@ export function QuickDropProvider({ children }: { children: ReactNode }) {
     addItem: async (input) => {
       if (!user) {
         setMessage('Please sign in first.');
-        return;
+        return null;
       }
 
       try {
-        await createItem(user.id, input);
+        const item = await createItem(user.id, input);
         setMessage('Saved to QuickDrop.');
+        return item;
       } catch (error) {
         setMessage(authErrorMessage(error));
+        return null;
       }
     },
     editItem: async (itemId, input) => {

@@ -1,4 +1,4 @@
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/theme/colors';
 import type { QuickDropItem } from '@/types/quickdrop';
 
@@ -12,6 +12,15 @@ const typeLabel: Record<QuickDropItem['type'], string> = {
   task: 'TASK',
 };
 
+const cleanText = (value: string) => {
+  return value
+    .replace(/<li>/gi, '- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<\/?ul>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+};
+
 export function ItemCard({
   item,
   onDelete,
@@ -21,12 +30,20 @@ export function ItemCard({
   onDelete: (itemId: string) => void;
   onToggleTask?: (item: QuickDropItem) => void;
 }) {
-  const body = item.content || item.note || item.url || item.fileUrl || '';
+  const body = cleanText(item.content || item.note || item.url || item.fileUrl || '');
   const canOpen = Boolean(item.url || item.fileUrl);
+  const tags = item.tags.filter(Boolean);
 
   const openItem = () => {
     const target = item.url || item.fileUrl;
     if (target) Linking.openURL(target);
+  };
+
+  const confirmDelete = () => {
+    Alert.alert('Delete item?', 'This will remove it from QuickDrop.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) },
+    ]);
   };
 
   return (
@@ -40,6 +57,13 @@ export function ItemCard({
         {item.title}
       </Text>
       {body ? <Text style={styles.body} numberOfLines={3}>{body}</Text> : null}
+      {tags.length > 0 ? (
+        <View style={styles.tags}>
+          {tags.map((tag) => (
+            <Text key={tag} style={styles.tag}>{tag}</Text>
+          ))}
+        </View>
+      ) : null}
 
       <View style={styles.actions}>
         {item.type === 'task' && onToggleTask ? (
@@ -52,7 +76,7 @@ export function ItemCard({
             <Text style={styles.actionText}>Open</Text>
           </Pressable>
         ) : null}
-        <Pressable style={[styles.actionButton, styles.deleteButton]} onPress={() => onDelete(item.id)}>
+        <Pressable style={[styles.actionButton, styles.deleteButton]} onPress={confirmDelete}>
           <Text style={styles.deleteText}>Delete</Text>
         </Pressable>
       </View>
@@ -112,6 +136,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 12,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  tag: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 8,
+    color: colors.primaryDark,
+    fontSize: 11,
+    fontWeight: '800',
+    overflow: 'hidden',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   actionButton: {
     backgroundColor: colors.blueSoft,

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,15 @@ import { Screen } from '@/components/Screen';
 import { useQuickDrop } from '@/hooks/useQuickDrop';
 import { colors } from '@/theme/colors';
 import type { QuickDropItem } from '@/types/quickdrop';
+
+const cleanText = (value = '') => {
+  return value
+    .replace(/<li>/gi, '- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<\/?ul>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+};
 
 export default function NotesScreen() {
   const { items, addItem, editItem, removeItem, setMessage } = useQuickDrop();
@@ -59,6 +69,13 @@ export default function NotesScreen() {
     startNew();
   };
 
+  const confirmDelete = (item: QuickDropItem) => {
+    Alert.alert('Delete note?', item.title, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => removeItem(item.id) },
+    ]);
+  };
+
   return (
     <Screen>
       <Header />
@@ -99,12 +116,12 @@ export default function NotesScreen() {
         {notes.map((item) => (
           <View key={item.id} style={styles.noteCard}>
             <Text style={styles.noteTitle}>{item.title}</Text>
-            <Text style={styles.noteText} numberOfLines={5}>{item.note || item.content}</Text>
+            <Text style={styles.noteText} numberOfLines={5}>{cleanText(item.note || item.content)}</Text>
             <View style={styles.actions}>
               <Pressable onPress={() => startEdit(item)} style={styles.smallButton}>
                 <Text style={styles.smallButtonText}>Edit</Text>
               </Pressable>
-              <Pressable onPress={() => removeItem(item.id)} style={[styles.smallButton, styles.deleteButton]}>
+              <Pressable onPress={() => confirmDelete(item)} style={[styles.smallButton, styles.deleteButton]}>
                 <Text style={styles.deleteText}>Delete</Text>
               </Pressable>
             </View>

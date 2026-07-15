@@ -13,7 +13,7 @@ export type QuickDropContextValue = {
   createAccount: (email: string, password: string) => Promise<void>;
   signInGuest: () => Promise<void>;
   signOut: () => Promise<void>;
-  addItem: (input: CreateQuickDropItem) => Promise<void>;
+  addItem: (input: CreateQuickDropItem) => Promise<QuickDropItem | null>;
   editItem: (itemId: string, input: Partial<CreateQuickDropItem>) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
 };
