@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import { Screen } from '@/components/Screen';
 import { useQuickDrop } from '@/hooks/useQuickDrop';
 import { colors } from '@/theme/colors';
 import type { QuickDropItem } from '@/types/quickdrop';
+import { confirmAction } from '@/utils/confirmAction';
 
 const cleanText = (value = '') => {
   return value
@@ -28,6 +28,7 @@ export default function NotesScreen() {
   const { items, addItem, editItem, removeItem, setMessage } = useQuickDrop();
   const notes = useMemo(() => items.filter((item) => item.type === 'note'), [items]);
   const [editingNote, setEditingNote] = useState<QuickDropItem | null>(null);
+  const [deletingNoteId, setDeletingNoteId] = useState('');
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
 
@@ -70,10 +71,16 @@ export default function NotesScreen() {
   };
 
   const confirmDelete = (item: QuickDropItem) => {
-    Alert.alert('Delete note?', item.title, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => removeItem(item.id) },
-    ]);
+    confirmAction({
+      title: 'Delete note?',
+      message: item.title,
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setDeletingNoteId(item.id);
+        const didDelete = await removeItem(item.id);
+        if (!didDelete) setDeletingNoteId('');
+      },
+    });
   };
 
   return (
@@ -113,7 +120,9 @@ export default function NotesScreen() {
         {notes.length === 0 ? (
           <EmptyState title="No notes yet" text="Create notes for reusable thoughts, form text, and research details." />
         ) : null}
-        {notes.map((item) => (
+        {notes.map((item) => {
+          const isDeleting = deletingNoteId === item.id;
+          return (
           <View key={item.id} style={styles.noteCard}>
             <Text style={styles.noteTitle}>{item.title}</Text>
             <Text style={styles.noteText} numberOfLines={5}>{cleanText(item.note || item.content)}</Text>
@@ -121,12 +130,17 @@ export default function NotesScreen() {
               <Pressable onPress={() => startEdit(item)} style={styles.smallButton}>
                 <Text style={styles.smallButtonText}>Edit</Text>
               </Pressable>
-              <Pressable onPress={() => confirmDelete(item)} style={[styles.smallButton, styles.deleteButton]}>
-                <Text style={styles.deleteText}>Delete</Text>
+              <Pressable
+                disabled={isDeleting}
+                onPress={() => confirmDelete(item)}
+                style={[styles.smallButton, styles.deleteButton, isDeleting && styles.disabledButton]}
+              >
+                <Text style={styles.deleteText}>{isDeleting ? 'Deleting...' : 'Delete'}</Text>
               </Pressable>
             </View>
           </View>
-        ))}
+          );
+        })}
       </ScrollView>
     </Screen>
   );
@@ -227,6 +241,9 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: colors.dangerSoft,
     borderColor: '#ffc4c4',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   deleteText: {
     color: colors.danger,

@@ -15,7 +15,7 @@ export type QuickDropContextValue = {
   signOut: () => Promise<void>;
   addItem: (input: CreateQuickDropItem) => Promise<QuickDropItem | null>;
   editItem: (itemId: string, input: Partial<CreateQuickDropItem>) => Promise<void>;
-  removeItem: (itemId: string) => Promise<void>;
+  removeItem: (itemId: string) => Promise<boolean>;
 };
 
 export const QuickDropContext = createContext<QuickDropContextValue | null>(null);

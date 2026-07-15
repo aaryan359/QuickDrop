@@ -1,9 +1,11 @@
 import axios from 'axios';
 
 export type UploadableAsset = {
+  dataUri?: string;
   uri: string;
   name: string;
   mimeType?: string;
+  webFile?: Blob;
 };
 
 type CloudinaryResponse = {
@@ -77,11 +79,18 @@ export const uploadDocumentToCloudinary = async (
   const mimeType = getMimeType(asset.name, asset.mimeType);
   const body = new FormData();
 
-  body.append('file', {
-    uri: asset.uri,
-    name: asset.name,
-    type: mimeType,
-  } as unknown as File);
+  if (asset.webFile) {
+    body.append('file', asset.webFile, asset.name);
+  } else if (asset.dataUri) {
+    body.append('file', asset.dataUri);
+  } else {
+    body.append('file', {
+      uri: asset.uri,
+      name: asset.name,
+      type: mimeType,
+    } as unknown as File);
+  }
+
   body.append('upload_preset', uploadPreset);
 
   const response = await axios.post<CloudinaryResponse>(

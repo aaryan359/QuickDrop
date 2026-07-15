@@ -140,9 +140,11 @@ export default function DropScreen() {
   };
 
   const saveUploadedAsset = async (asset: {
+    dataUri?: string;
     uri: string;
     name: string;
     mimeType?: string;
+    webFile?: Blob;
   }) => {
     setIsUploading(true);
     const upload = await uploadDocumentToCloudinary(asset);
@@ -171,6 +173,7 @@ export default function DropScreen() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         allowsMultipleSelection: false,
+        base64: true,
         mediaTypes: ['images', 'videos'],
         quality: 1,
       });
@@ -179,8 +182,10 @@ export default function DropScreen() {
 
       const asset = result.assets[0];
       const mimeType = asset.mimeType ?? (asset.type === 'video' ? 'video/mp4' : 'image/jpeg');
+      const dataUri = asset.base64 ? `data:${mimeType};base64,${asset.base64}` : undefined;
 
       await saveUploadedAsset({
+        dataUri,
         uri: asset.uri,
         name: asset.fileName ?? fileNameFromUri(asset.uri, asset.type === 'video' ? 'video.mp4' : 'image.jpg'),
         mimeType,
@@ -207,6 +212,7 @@ export default function DropScreen() {
         uri: asset.uri,
         name: asset.name,
         mimeType: asset.mimeType,
+        webFile: asset.file,
       });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'File upload failed.');

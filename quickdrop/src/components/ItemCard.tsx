@@ -1,6 +1,8 @@
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '@/theme/colors';
 import type { QuickDropItem } from '@/types/quickdrop';
+import { confirmAction } from '@/utils/confirmAction';
 
 const typeLabel: Record<QuickDropItem['type'], string> = {
   url: 'LINK',
@@ -27,9 +29,10 @@ export function ItemCard({
   onToggleTask,
 }: {
   item: QuickDropItem;
-  onDelete: (itemId: string) => void;
+  onDelete: (itemId: string) => Promise<boolean>;
   onToggleTask?: (item: QuickDropItem) => void;
 }) {
+  const [isDeleting, setIsDeleting] = useState(false);
   const body = cleanText(item.content || item.note || item.url || item.fileUrl || '');
   const canOpen = Boolean(item.url || item.fileUrl);
   const tags = item.tags.filter(Boolean);
@@ -40,10 +43,16 @@ export function ItemCard({
   };
 
   const confirmDelete = () => {
-    Alert.alert('Delete item?', 'This will remove it from QuickDrop.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) },
-    ]);
+    confirmAction({
+      title: 'Delete item?',
+      message: 'This will remove it from QuickDrop.',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        setIsDeleting(true);
+        const didDelete = await onDelete(item.id);
+        if (!didDelete) setIsDeleting(false);
+      },
+    });
   };
 
   return (
@@ -76,8 +85,12 @@ export function ItemCard({
             <Text style={styles.actionText}>Open</Text>
           </Pressable>
         ) : null}
-        <Pressable style={[styles.actionButton, styles.deleteButton]} onPress={confirmDelete}>
-          <Text style={styles.deleteText}>Delete</Text>
+        <Pressable
+          disabled={isDeleting}
+          style={[styles.actionButton, styles.deleteButton, isDeleting && styles.disabledButton]}
+          onPress={confirmDelete}
+        >
+          <Text style={styles.deleteText}>{isDeleting ? 'Deleting...' : 'Delete'}</Text>
         </Pressable>
       </View>
     </View>
@@ -169,6 +182,9 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: colors.dangerSoft,
     borderColor: '#ffc4c4',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   deleteText: {
     color: colors.danger,

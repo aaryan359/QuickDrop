@@ -1,7 +1,8 @@
-import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 import { useQuickDrop } from '@/hooks/useQuickDrop';
 import { colors } from '@/theme/colors';
+import { confirmAction } from '@/utils/confirmAction';
 
 export function Header() {
   const { user, signOut, setMessage } = useQuickDrop();
@@ -9,17 +10,15 @@ export function Header() {
   const initial = user?.name?.trim()[0]?.toUpperCase() ?? 'Q';
 
   const confirmLogout = () => {
-    Alert.alert('Logout?', 'You will need to sign in again on this device.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          setIsProfileOpen(false);
-          await signOut();
-        },
+    confirmAction({
+      title: 'Logout?',
+      message: 'You will need to sign in again on this device.',
+      confirmText: 'Logout',
+      onConfirm: async () => {
+        setIsProfileOpen(false);
+        await signOut();
       },
-    ]);
+    });
   };
 
   return (

@@ -127,12 +127,17 @@ export function QuickDropProvider({ children }: { children: ReactNode }) {
       }
     },
     removeItem: async (itemId) => {
-      if (!user) return;
+      if (!user) {
+        setMessage('Please sign in first.');
+        return false;
+      }
       try {
         await deleteItem(user.id, itemId);
         setMessage('Deleted.');
+        return true;
       } catch (error) {
         setMessage(authErrorMessage(error));
+        return false;
       }
     },
   }), [isAuthLoading, isDataLoading, items, message, user]);
