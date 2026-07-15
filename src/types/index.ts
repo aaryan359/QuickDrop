@@ -31,7 +31,7 @@ export interface NoteItem {
   subgroupId?: string;
 }
 
-export type QuickDropItemType = 'link' | 'note' | 'image' | 'pdf' | 'document' | 'text';
+export type QuickDropItemType = 'url' | 'text' | 'note' | 'image' | 'pdf' | 'file' | 'task';
 
 export interface QuickDropItem {
   id: string;

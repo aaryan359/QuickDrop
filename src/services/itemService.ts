@@ -35,10 +35,19 @@ const itemsCollection = (userId: string) => {
   return collection(db, 'users', userId, 'items');
 };
 
+const normalizeItemType = (type: unknown): QuickDropItem['type'] => {
+  if (type === 'link') return 'url';
+  if (type === 'document') return 'file';
+  if (type === 'url' || type === 'text' || type === 'note' || type === 'image' || type === 'pdf' || type === 'file' || type === 'task') {
+    return type;
+  }
+  return 'text';
+};
+
 const mapItem = (id: string, data: DocumentData): QuickDropItem => ({
   id,
   userId: String(data.userId),
-  type: data.type,
+  type: normalizeItemType(data.type),
   title: String(data.title),
   url: data.url,
   fileUrl: data.fileUrl,

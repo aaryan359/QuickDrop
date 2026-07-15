@@ -6,15 +6,12 @@ import { uploadFile } from '../storageService';
 import type { AppData, BackendClient } from './types';
 
 const toFileType = (type: QuickDropItem['type']): FileItem['type'] => {
-  if (type === 'link') return 'url';
-  if (type === 'document') return 'file';
   if (type === 'note') return 'text';
+  if (type === 'task') return 'text';
   return type;
 };
 
 const toItemType = (type: FileItem['type']): QuickDropItem['type'] => {
-  if (type === 'url') return 'link';
-  if (type === 'file') return 'document';
   return type;
 };
 
@@ -69,7 +66,7 @@ export const createCloudFile = async (
 
 export const createCloudUrl = async (fileItem: FileItem): Promise<FileItem> => {
   const saved = await createItem({
-    type: 'link',
+    type: 'url',
     title: fileItem.name,
     url: fileItem.url,
     note: fileItem.description,

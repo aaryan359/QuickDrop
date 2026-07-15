@@ -60,6 +60,7 @@ export default function DropScreen() {
   const [pickerMode, setPickerMode] = useState<'date' | 'time' | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const save = async () => {
     const trimmedContent = content.trim();
@@ -147,7 +148,8 @@ export default function DropScreen() {
     webFile?: Blob;
   }) => {
     setIsUploading(true);
-    const upload = await uploadDocumentToCloudinary(asset);
+    setUploadProgress(0);
+    const upload = await uploadDocumentToCloudinary(asset, setUploadProgress);
     const savedItem = await addItem({
       type: getFileType(asset.mimeType),
       title: asset.name,
@@ -161,6 +163,7 @@ export default function DropScreen() {
     if (savedItem) {
       setMessage('File uploaded and saved.');
     }
+    setUploadProgress(0);
   };
 
   const pickMediaFile = async () => {
@@ -236,6 +239,14 @@ export default function DropScreen() {
               <Text style={styles.uploadButtonText}>{isUploading ? 'Uploading...' : 'PDF / Doc / Any'}</Text>
             </Pressable>
           </View>
+          {isUploading ? (
+            <View style={styles.progressWrap}>
+              <View style={[styles.progressFill, { width: `${uploadProgress || 8}%` }]} />
+              <Text style={styles.progressText}>
+                {uploadProgress > 0 ? `${uploadProgress}% uploaded` : 'Preparing upload...'}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.card}>
@@ -344,6 +355,29 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: colors.primaryDark,
     fontWeight: '900',
+  },
+  progressWrap: {
+    backgroundColor: '#dbeee6',
+    borderRadius: 999,
+    height: 26,
+    justifyContent: 'center',
+    marginTop: 14,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressFill: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+  },
+  progressText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   card: {
     backgroundColor: colors.surface,

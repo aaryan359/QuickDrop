@@ -24,6 +24,8 @@ export type UploadResult = {
   provider: 'cloudinary';
 };
 
+export type UploadProgressHandler = (progress: number) => void;
+
 const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'dd5bk5dti';
 const uploadPreset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? 'quickDropUpload';
 
@@ -70,7 +72,8 @@ const assertCloudinarySuccess = (
 };
 
 export const uploadDocumentToCloudinary = async (
-  asset: UploadableAsset
+  asset: UploadableAsset,
+  onProgress?: UploadProgressHandler
 ): Promise<UploadResult> => {
   if (!isCloudinaryReady()) {
     throw new Error('Cloudinary cloud name and upload preset are required.');
@@ -102,6 +105,10 @@ export const uploadDocumentToCloudinary = async (
         'X-Requested-With': 'XMLHttpRequest',
       },
       timeout: 30000,
+      onUploadProgress: (event) => {
+        if (!event.total || !onProgress) return;
+        onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      },
     }
   );
 
