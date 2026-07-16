@@ -33,6 +33,15 @@ const steps = [
   'Open it later from the app or Chrome extension.',
 ]
 
+const installSteps = [
+  'Download the QuickDrop extension ZIP.',
+  'Unzip it on your computer.',
+  'Open chrome://extensions in Chrome, or edge://extensions / brave://extensions in other Chromium browsers.',
+  'Turn on Developer mode.',
+  'Click Load unpacked and select the unzipped QuickDrop folder.',
+  'Pin QuickDrop from the extensions menu so it is always one click away.',
+]
+
 const pricingPlans = [
   {
     name: 'Free',
@@ -57,6 +66,11 @@ const pricingPlans = [
 
 function App() {
   const repeatedScreens = [...demoScreens, ...demoScreens]
+  const buildNumber = import.meta.env.VITE_BUILD_VERSION || 'local'
+  const buildSha = (import.meta.env.VITE_BUILD_SHA || 'preview').slice(0, 7)
+  const buildLabel = buildNumber === 'local'
+    ? 'Local preview'
+    : `Build #${buildNumber} • ${buildSha}`
 
   return (
     <main>
@@ -68,6 +82,7 @@ function App() {
         <nav>
           <a href="#demo">Demo</a>
           <a href="#features">Features</a>
+          <a href="#install">Install</a>
           <a href="#pricing">Pricing</a>
           <a href="#privacy">Privacy</a>
           <a href="#contact">Contact</a>
@@ -93,6 +108,7 @@ function App() {
             <span>Use in Chrome</span>
             <span>Links, notes, files</span>
           </div>
+          <p className="release-pill">Latest landing version: {buildLabel}</p>
         </div>
 
         <div className="hero-product" aria-label="QuickDrop product preview">
@@ -173,6 +189,25 @@ function App() {
             <article className="feature-tile" key={feature.title}>
               <h3>{feature.title}</h3>
               <p>{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="install" className="install-section">
+        <div className="section-heading narrow">
+          <p className="eyebrow">Setup</p>
+          <h2>Install QuickDrop in Chrome, Edge, or Brave.</h2>
+          <p>
+            Until the extension is published in the store, use the unpacked install flow.
+            It takes less than a minute and works in most Chromium-based browsers.
+          </p>
+        </div>
+        <div className="install-grid">
+          {installSteps.map((step, index) => (
+            <article className="install-step" key={step}>
+              <span>{index + 1}</span>
+              <p>{step}</p>
             </article>
           ))}
         </div>
@@ -269,6 +304,7 @@ function App() {
 
       <footer>
         <span>QuickDrop</span>
+        <span>{buildLabel}</span>
         <span>Save now. Deal with it later.</span>
       </footer>
     </main>

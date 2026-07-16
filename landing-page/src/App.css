@@ -233,6 +233,13 @@ h3 {
   padding: 9px 12px;
 }
 
+.release-pill {
+  color: var(--green-dark);
+  font-size: 13px;
+  font-weight: 900;
+  margin: 16px 0 0;
+}
+
 .hero-product {
   align-items: center;
   display: grid;
@@ -404,6 +411,7 @@ footer {
 
 .demo-section,
 .feature-section,
+.install-section,
 .workflow-section,
 .privacy-section,
 .pricing-section,
@@ -502,6 +510,50 @@ footer {
 
 .feature-tile:nth-child(4) {
   border-color: rgba(240, 68, 68, 0.24);
+}
+
+.install-section {
+  border-top: 1px solid rgba(166, 197, 191, 0.58);
+  padding: 86px 22px 92px;
+}
+
+.install-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.install-step {
+  align-items: start;
+  background: #ffffff;
+  border: 1px solid rgba(166, 197, 191, 0.74);
+  border-radius: 22px;
+  box-shadow: 0 16px 48px rgba(16, 32, 51, 0.08);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto 1fr;
+  min-height: 112px;
+  padding: 18px;
+}
+
+.install-step span {
+  align-items: center;
+  background: var(--mint);
+  border-radius: 12px;
+  color: var(--green-dark);
+  display: inline-flex;
+  font-weight: 950;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.install-step p {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.55;
+  margin: 0;
 }
 
 .workflow-section {
@@ -778,6 +830,7 @@ footer {
 footer {
   border-top: 1px solid var(--line);
   display: flex;
+  gap: 14px;
   font-size: 14px;
   font-weight: 800;
   justify-content: space-between;
@@ -812,6 +865,7 @@ footer span:first-child {
 
   .status-strip,
   .feature-grid,
+  .install-grid,
   .pricing-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -827,7 +881,7 @@ footer span:first-child {
     gap: 10px;
   }
 
-  .site-nav nav a:not(.nav-button):not([href="#pricing"]) {
+  .site-nav nav a:not(.nav-button):not([href="#install"]):not([href="#pricing"]) {
     display: none;
   }
 
@@ -847,6 +901,7 @@ footer span:first-child {
 
   .status-strip,
   .feature-grid,
+  .install-grid,
   .pricing-grid {
     grid-template-columns: 1fr;
   }

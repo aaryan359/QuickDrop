@@ -41,6 +41,9 @@ jobs:
           npm ci
 
       - name: Build website
+        env:
+          VITE_BUILD_VERSION: ${{ github.run_number }}
+          VITE_BUILD_SHA: ${{ github.sha }}
         run: |
           cd landing-page
           npm run build
